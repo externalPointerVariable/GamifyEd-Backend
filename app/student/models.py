@@ -13,6 +13,23 @@ class StudentProfile(models.Model):
     def __str__(self):
         return f"{self.name} ({self.institute})"
 
+class TeacherProfile(models.Model):
+    user = models.OneToOneField(user, on_delete=models.CASCADE, related_name="teacher_profile")
+    name = models.CharField(max_length=225)
+    email = models.EmailField(unique=True)
+
+    def __str__(self):
+        return f"Teacher: {self.name}"
+
+class Classrooms(models.Model):
+    teacher = models.ForeignKey(TeacherProfile, on_delete=models.CASCADE, related_name="classrooms")
+    name = models.CharField(max_length=225)
+    subject = models.CharField(max_length=225)
+    students = models.ManyToManyField(StudentProfile, related_name="classrooms", blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.name} - {self.subject}"
 
 class DailyMissions(models.Model):
     student = models.OneToOneField(user, on_delete=models.CASCADE, related_name="daily_missions")
@@ -22,6 +39,7 @@ class DailyMissions(models.Model):
     completed_at = models.DateTimeField(null=True, blank=True)
 
     def mark_complete(self):
+        """Mark all missions as completed and store the completion timestamp."""
         self.mission_1 = True
         self.mission_2 = True
         self.mission_3 = True
@@ -29,6 +47,7 @@ class DailyMissions(models.Model):
         self.save()
 
     def reset_missions(self):
+        """Reset daily missions for a fresh start."""
         self.mission_1 = False
         self.mission_2 = False
         self.mission_3 = False
