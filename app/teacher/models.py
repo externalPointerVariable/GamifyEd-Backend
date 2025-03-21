@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 user = get_user_model()
 
 class TeacherProfile(models.Model):
-    user = models.OneToOneField(user, on_delete=models.CASCADE, related_name="teacher_profile")
+    user = models.OneToOneField(user, on_delete=models.CASCADE, related_name="teacher_profile_teacher_app")
     name = models.CharField(max_length=225)
     email = models.EmailField(unique=True)
 
