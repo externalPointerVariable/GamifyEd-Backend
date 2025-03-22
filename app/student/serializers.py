@@ -1,10 +1,10 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import UserProfile
+from .models import AssignRole
 from rest_framework_simplejwt.tokens import RefreshToken
 
 class RegisterSerializer(serializers.ModelSerializer):
-    role = serializers.ChoiceField(choices=UserProfile.ROLE_CHOICES, required=True)
+    role = serializers.ChoiceField(choices=AssignRole.ROLE_CHOICES, required=True)
     password = serializers.CharField(write_only=True, min_length=8)
 
     class Meta:
@@ -14,7 +14,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         role = validated_data.pop('role')  # Extract role before user creation
         user = User.objects.create_user(**validated_data)
-        UserProfile.objects.create(user=user, role=role)  # Assign role separately
+        AssignRole.objects.create(user=user, role=role)  # Assign role separately
         return user
 
 class LoginSerializer(serializers.Serializer):
@@ -28,6 +28,6 @@ class LoginSerializer(serializers.Serializer):
             return {
                 "refresh": str(refresh),
                 "access": str(refresh.access_token),
-                "role": user.profile.role,  # Get role from UserProfile
+                "role": user.profile.role,  # Get role from AssignRole
             }
         raise serializers.ValidationError("Invalid credentials")
