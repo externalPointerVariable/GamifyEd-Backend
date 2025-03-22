@@ -16,15 +16,20 @@ Including another URLconf
 """
 import os
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import RedirectView
+from django.http import JsonResponse
+
+def homeView(request):
+    return JsonResponse({"Message":"Welcome to the GamifyEd Backend API's", "status":"Success"})
 
 urlpatterns = [
-    # path('/'),
+    path('', homeView),
     path('admin/', admin.site.urls),
     path('favicon.ico',RedirectView.as_view(url='/static/favicon.ico', permanent = True)),
+    path('api/', include('api.urls')),
 ]
 
 if settings.DEBUG:

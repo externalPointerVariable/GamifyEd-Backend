@@ -1,16 +1,21 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+from django.contrib.auth.models import User
 
 user = get_user_model()
 # This model is used in both Teachers adn Students application
-class AssignRole(models.Model):
-    ROLE_CHOICES = (
-        ('student', 'Student'),
+class UserProfile(models.Model):
+    ROLE_CHOICES = [
         ('teacher', 'Teacher'),
-    )
-    user = models.OneToOneField(user, on_delete=models.CASCADE, related_name='profile')
+        ('student', 'Student'),
+    ]
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
     role = models.CharField(max_length=10, choices=ROLE_CHOICES)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.role}"
 
 class StudentProfile(models.Model):
     name = models.CharField(max_length=225)

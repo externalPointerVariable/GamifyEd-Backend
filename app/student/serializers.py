@@ -1,21 +1,26 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import AssignRole
+from .models import UserProfile
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from django.contrib.auth.models import User
+from rest_framework import serializers
+from .models import UserProfile
+
 class RegisterSerializer(serializers.ModelSerializer):
-    role = serializers.ChoiceField(choices=AssignRole.ROLE_CHOICES, required=True)
-    password = serializers.CharField(write_only=True, min_length=8)
+    role = serializers.ChoiceField(choices=UserProfile.ROLE_CHOICES, write_only=True)
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'password', 'role')
+        fields = ['username', 'email', 'password', 'role']
+        extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
-        role = validated_data.pop('role')  # Extract role before user creation
+        role = validated_data.pop('role')  # Extract role
         user = User.objects.create_user(**validated_data)
-        AssignRole.objects.create(user=user, role=role)  # Assign role separately
+        UserProfile.objects.create(user=user, role=role)  # Create profile with role
         return user
+
 
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField()
