@@ -1,24 +1,34 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import UserProfile
+from .models import UserProfile, StudentProfile
 from teacher.models import TeacherProfile
 from rest_framework_simplejwt.tokens import RefreshToken
 
-
 class RegisterSerializer(serializers.ModelSerializer):
     role = serializers.ChoiceField(choices=UserProfile.ROLE_CHOICES, write_only=True)
-
+    
     class Meta:
         model = User
         fields = ['username', 'email', 'password', 'role', 'institution']
-        extra_kwargs = {'password': {'write_only': True}}
+        extra_kwargs = {
+            'password': {'write_only': True},
+            'institution': {'write_only': True},  # Adding institution to extra_kwargs
+        }
 
     def create(self, validated_data):
-        role = validated_data.pop('role')  # Extract role
-        institutions = validated_data.pop('institution')
+        role = validated_data.pop('role')
+        institution = validated_data.pop('institution')  # Extract institution from validated_data
+
         user = User.objects.create_user(**validated_data)
-        UserProfile.objects.create(user=user, role=role)  # Create profile with role
-        print (f"Role : {role} and Instituton is : {institutions}")
+        UserProfile.objects.create(user=user, role=role)
+
+        print(f"Role: {role} and Institution: {institution}")
+
+        if role == "student":
+            StudentProfile.objects.create(user=user, email=user.email, institute=institution)
+        elif role == "teacher":
+            TeacherProfile.objects.create(user=user, email=user.email, institute=institution)
+
         return user
 
 

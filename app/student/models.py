@@ -22,6 +22,7 @@ class StudentProfile(models.Model):
     email = models.EmailField(unique=True)
     institute = models.CharField(max_length=225)
     experience_points = models.PositiveIntegerField(default=0)
+    level = models.IntegerField(default=1)
 
     def __str__(self):
         return f"{self.name} ({self.institute})"
