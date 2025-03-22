@@ -13,9 +13,11 @@ class UserProfile(models.Model):
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
     role = models.CharField(max_length=10, choices=ROLE_CHOICES)
+    institution = models.CharField(max_length=255, default="No Selected")  # Added institution field
 
     def __str__(self):
-        return f"{self.user.username} - {self.role}"
+        return f"{self.user.username} - {self.role} ({self.institution if self.institution else 'No Institution'})"
+
 
 class StudentProfile(models.Model):
     name = models.CharField(max_length=225)
