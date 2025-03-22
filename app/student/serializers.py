@@ -1,24 +1,24 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import UserProfile
+from teacher.models import TeacherProfile
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from django.contrib.auth.models import User
-from rest_framework import serializers
-from .models import UserProfile
 
 class RegisterSerializer(serializers.ModelSerializer):
     role = serializers.ChoiceField(choices=UserProfile.ROLE_CHOICES, write_only=True)
 
     class Meta:
         model = User
-        fields = ['username', 'email', 'password', 'role']
+        fields = ['username', 'email', 'password', 'role', 'institution']
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
         role = validated_data.pop('role')  # Extract role
+        institutions = validated_data.pop('institution')
         user = User.objects.create_user(**validated_data)
         UserProfile.objects.create(user=user, role=role)  # Create profile with role
+        print (f"Role : {role} and Instituton is : {institutions}")
         return user
 
 
