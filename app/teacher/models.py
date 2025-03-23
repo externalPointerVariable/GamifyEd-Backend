@@ -5,16 +5,16 @@ user = get_user_model()
 
 class TeacherProfile(models.Model):
     user = models.OneToOneField(user, on_delete=models.CASCADE, related_name="teacher_profile_teacher_app")
-    name = models.CharField(max_length=225)
+    name = models.CharField(max_length=255, default=" ")
     email = models.EmailField(unique=True)
     institute = models.CharField(max_length=255, default=" ")
 
     def __str__(self):
-        return f"Teacher: {self.name}"
+        return f"Teacher: {self.user}"
 
 
     def __str__(self):
-        return f"Student: {self.name}"
+        return f"Student: {self.user}"
 
 class Classrooms(models.Model):
     teacher = models.ForeignKey(TeacherProfile, on_delete=models.CASCADE, related_name="classrooms")
