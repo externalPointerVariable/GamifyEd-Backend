@@ -6,8 +6,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 class RegisterSerializer(serializers.ModelSerializer):
     role = serializers.ChoiceField(choices=UserProfile.ROLE_CHOICES, write_only=True)
-    institution = serializers.CharField(write_only=True)  # Explicitly define institution
-
+    institution = serializers.CharField(write_only=True) 
     class Meta:
         model = User
         fields = ['username', 'email', 'password', 'role', 'institution']
