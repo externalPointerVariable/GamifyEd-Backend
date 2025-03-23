@@ -4,7 +4,6 @@ from django.utils import timezone
 from django.contrib.auth.models import User
 
 user = get_user_model()
-# This model is used in both Teachers adn Students application
 class UserProfile(models.Model):
     ROLE_CHOICES = [
         ('teacher', 'Teacher'),
@@ -13,8 +12,7 @@ class UserProfile(models.Model):
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
     role = models.CharField(max_length=10, choices=ROLE_CHOICES)
-    institution = models.CharField(max_length=255, default="No Selected")  # Added institution field
-
+    institution = models.CharField(max_length=255, default="No Selected")
     def __str__(self):
         return f"{self.user.username} - {self.role} ({self.institution if self.institution else 'No Institution'})"
 
