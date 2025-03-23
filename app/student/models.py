@@ -18,7 +18,8 @@ class UserProfile(models.Model):
 
 
 class StudentProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="student_profile")
+    avater = models.ImageField()
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="student_app_student_profile")
     name = models.CharField(max_length=225)
     email = models.EmailField(unique=True)
     institute = models.CharField(max_length=225)
