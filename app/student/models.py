@@ -11,7 +11,8 @@ class UserProfile(models.Model):
     ]
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
-    name = models.CharField(max_length=255, blank=True)
+    firstName = models.CharField(max_length=255, default="")
+    lastName = models.CharField(max_length=255, default="")
     role = models.CharField(max_length=10, choices=ROLE_CHOICES)
     institution = models.CharField(max_length=255, default="Not Selected")
 
@@ -22,7 +23,8 @@ class UserProfile(models.Model):
 class StudentProfile(models.Model):
     user = models.OneToOneField(user, on_delete=models.CASCADE, related_name="student_profile", null=True, blank=True)
     avatar = models.ImageField(upload_to='student_avatars/', null=True, blank=True)
-    name = models.CharField(max_length=255, default="")
+    firstName = models.CharField(max_length=255, default="")
+    lastName = models.CharField(max_length=255, default="")
     email = models.EmailField(unique=True)
     institute = models.CharField(max_length=255, default="")
     experience_points = models.PositiveIntegerField(default=0)
