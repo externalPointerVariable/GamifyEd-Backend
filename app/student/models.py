@@ -11,6 +11,7 @@ class UserProfile(models.Model):
     ]
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
+    name = models.CharField(max_length=255)
     role = models.CharField(max_length=10, choices=ROLE_CHOICES)
     institution = models.CharField(max_length=255, default="Not Selected")
 
