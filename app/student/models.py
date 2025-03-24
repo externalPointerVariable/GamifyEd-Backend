@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User
 
 user = get_user_model()
 
@@ -18,8 +19,8 @@ class UserProfile(models.Model):
 
 
 class StudentProfile(models.Model):
-    avatar = models.ImageField(upload_to='student_avatars/', null=True, blank=True)
     user = models.OneToOneField(user, on_delete=models.CASCADE, related_name="student_profile", null=True, blank=True)
+    avatar = models.ImageField(upload_to='student_avatars/', null=True, blank=True)
     name = models.CharField(max_length=255, default=" ")
     email = models.EmailField(unique=True)
     institute = models.CharField(max_length=255, default=" ")
