@@ -7,9 +7,9 @@ user = get_user_model()
 class TeacherProfile(models.Model):
     user = models.OneToOneField(user, on_delete=models.CASCADE, related_name="teacher_profile", blank=True, null=True)
     avatar = models.ImageField(upload_to='teacher_avatars/', null=True, blank=True)
-    name = models.CharField(max_length=255, default=" ")
+    name = models.CharField(max_length=255, default="")
     email = models.EmailField(unique=True)
-    institute = models.CharField(max_length=255, default=" ")
+    institute = models.CharField(max_length=255, default="")
 
     def __str__(self):
         return f"Teacher: {self.user.username} ({self.institute})"
