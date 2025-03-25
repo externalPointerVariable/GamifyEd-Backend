@@ -55,11 +55,12 @@ class StudentProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = StudentProfile
-        fields = ['user', 'avatar', 'name', 'email', 'institute', 'experience_points', 'level']
+        fields = ['user', 'avatar', 'firstname', 'lastname',  'email', 'institute', 'experience_points', 'level']
 
     def update(self, instance, validated_data):
         instance.avatar = validated_data.get('avatar', instance.avatar)
-        instance.name = validated_data.get('name', instance.name)
+        instance.firstname = validated_data.get('firstname', instance.firstname)
+        instance.lastname = validated_data.get('lastname', instance.lastname)
         instance.institute = validated_data.get('institute', instance.institute)
         instance.experience_points = validated_data.get('experience_points', instance.experience_points)
         instance.level = validated_data.get('level', instance.level)

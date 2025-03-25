@@ -12,11 +12,11 @@ class TeacherProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TeacherProfile
-        fields = ['user', 'avatar', 'name', 'email', 'institute']
+        fields = ['user', 'avatar', 'firstname', 'lastname',  'email', 'institute']
 
     def update(self, instance, validated_data):
         instance.avatar = validated_data.get('avatar', instance.avatar)
-        instance.name = validated_data.get('name', instance.name)
+        instance.firstname = validated_data.get('firstname', instance.firstname)
         instance.institute = validated_data.get('institute', instance.institute)
         instance.save()
         return instance
