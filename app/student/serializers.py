@@ -5,8 +5,8 @@ from teacher.models import TeacherProfile
 from rest_framework_simplejwt.tokens import RefreshToken
 
 class RegisterSerializer(serializers.ModelSerializer):
-    firstName = serializers.CharField()
-    lastName = serializers.CharField()
+    firstName = serializers.CharField(write_only=True)
+    lastName = serializers.CharField(write_only=True)
     role = serializers.ChoiceField(choices=UserProfile.ROLE_CHOICES, write_only=True)
     institution = serializers.CharField(write_only=True) 
     class Meta:
@@ -25,11 +25,11 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.first_name = firstName
         user.last_name = lastName
         user.save()
-        UserProfile.objects.create(user=user.username, role=role, institution=institution)
+        UserProfile.objects.create(user=user,firstName=firstName, lastName=lastName, role=role, institution=institution)
         if role == "student":
-            StudentProfile.objects.create(user=user.username, firstName=firstName, lastName=lastName, email=user.email, institute=institution)
+            StudentProfile.objects.create(user=user, firstName=firstName, lastName=lastName, email=user.email, institute=institution)
         elif role == "teacher":
-            TeacherProfile.objects.create(user=user.username, firstName=firstName, lastName=lastName, email=user.email, institute=institution)
+            TeacherProfile.objects.create(user=user, firstName=firstName, lastName=lastName, email=user.email, institute=institution)
         return user
 
 
