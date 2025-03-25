@@ -16,12 +16,9 @@ class UserProfile(models.Model):
     role = models.CharField(max_length=10, choices=ROLE_CHOICES)
     institution = models.CharField(max_length=255, default="Not Selected")
 
-    def __str__(self):
-        return f"{self.user.username} - {self.role} ({self.institution if self.institution else 'No Institution'})"
-
 
 class StudentProfile(models.Model):
-    user = models.OneToOneField(user, on_delete=models.CASCADE, related_name="student_profile", null=True, blank=True)
+    user = models.OneToOneField(user, on_delete=models.CASCADE, related_name="student_profile", blank=True, null=True)
     avatar = models.ImageField(upload_to='student_avatars/', null=True, blank=True)
     firstName = models.CharField(max_length=255, default="")
     lastName = models.CharField(max_length=255, default="")
@@ -29,6 +26,3 @@ class StudentProfile(models.Model):
     institute = models.CharField(max_length=255, default="")
     experience_points = models.PositiveIntegerField(default=0)
     level = models.IntegerField(default=1)
-
-    def __str__(self):
-        return f"{self.name} ({self.institute})"
