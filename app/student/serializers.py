@@ -15,21 +15,14 @@ class RegisterSerializer(serializers.ModelSerializer):
         }
 
     def create(self, validated_data):
-        role = validated_data.pop('role')  # Extract role
-        institution = validated_data.pop('institution', None)  # Extract institution safely
-
+        role = validated_data.pop('role')
+        institution = validated_data.pop('institution', None)
         user = User.objects.create_user(**validated_data)
-
-        # Store institution in UserProfile
         UserProfile.objects.create(user=user, role=role, institution=institution)
-
-        print(f"Role: {role} and Institution: {institution}")
-
         if role == "student":
             StudentProfile.objects.create(user=user, email=user.email, institute=institution)
         elif role == "teacher":
             TeacherProfile.objects.create(user=user, email=user.email, institute=institution)
-
         return user
 
 
@@ -45,6 +38,9 @@ class LoginSerializer(serializers.Serializer):
             return {
                 "refresh": str(refresh),
                 "access": str(refresh.access_token),
-                "role": user.profile.role,  # Get role from AssignRole
+                "role": user.profile.role,
             }
         raise serializers.ValidationError("Invalid credentials")
+    
+class StudentProfile(serializers.Serializer):
+    pass
