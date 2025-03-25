@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from .models import UserProfile, StudentProfile
 from teacher.models import TeacherProfile
 from rest_framework_simplejwt.tokens import RefreshToken
+from teacher.serializers import UserProfileSerializer
 
 class RegisterSerializer(serializers.ModelSerializer):
     firstName = serializers.CharField(write_only=True)
@@ -27,12 +28,12 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.save()
         UserProfile.objects.create(user=user,firstName=firstName, lastName=lastName, role=role, institution=institution)
         if role == "student":
+            print(f" Student Class type: {type(StudentProfile)}")
+            print(f" Teacher Class type: {type(TeacherProfile)}")
             StudentProfile.objects.create(user=user, firstName=firstName, lastName=lastName, email=user.email, institute=institution)
         elif role == "teacher":
             TeacherProfile.objects.create(user=user, firstName=firstName, lastName=lastName, email=user.email, institute=institution)
         return user
-
-
 
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField()
@@ -49,5 +50,18 @@ class LoginSerializer(serializers.Serializer):
             }
         raise serializers.ValidationError("Invalid credentials")
     
-class StudentProfile(serializers.Serializer):
-    pass
+class StudentProfileSerializer(serializers.ModelSerializer):
+    user = UserProfileSerializer(read_only=True)
+
+    class Meta:
+        model = StudentProfile
+        fields = ['user', 'avatar', 'name', 'email', 'institute', 'experience_points', 'level']
+
+    def update(self, instance, validated_data):
+        instance.avatar = validated_data.get('avatar', instance.avatar)
+        instance.name = validated_data.get('name', instance.name)
+        instance.institute = validated_data.get('institute', instance.institute)
+        instance.experience_points = validated_data.get('experience_points', instance.experience_points)
+        instance.level = validated_data.get('level', instance.level)
+        instance.save()
+        return instance
