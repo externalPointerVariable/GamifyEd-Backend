@@ -15,7 +15,7 @@ class TeacherProfile(models.Model):
 
 
 class Classrooms(models.Model):
-    user = models.OneToOneField(user, on_delete=models.CASCADE, related_name="classroom_user", blank=True, null=True)
+    user = models.CharField(max_length=255, default=user.username)
     name = models.CharField(max_length=225)
     subject = models.CharField(max_length=225)
     students = models.IntegerField(default=0, validators=[MinValueValidator(0)])

@@ -18,7 +18,7 @@ class UserProfile(models.Model):
 
 
 class StudentProfile(models.Model):
-    user = models.OneToOneField(user, on_delete=models.CASCADE, related_name="student_profile", null=True, blank=True)
+    user = models.OneToOneField(user, on_delete=models.CASCADE, related_name="student_profile", blank=True, null=True)
     avatar = models.ImageField(upload_to='student_avatars/', null=True, blank=True)
     firstName = models.CharField(max_length=255, default="")
     lastName = models.CharField(max_length=255, default="")
