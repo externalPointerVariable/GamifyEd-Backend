@@ -40,6 +40,7 @@ class UserProfileView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 
+
 class ClassroomsManagerView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -47,6 +48,16 @@ class ClassroomsManagerView(APIView):
         classrooms = Classrooms.objects.filter(teacher=request.user.teacher_profile)
         serializer = ClassroomsManagerSerializer(classrooms, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        data = request.data.copy()
+        data['teacher'] = request.user.teacher_profile.id
+
+        serializer = ClassroomsManagerSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def patch(self, request, pk):
         try:
