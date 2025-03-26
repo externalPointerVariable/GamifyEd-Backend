@@ -16,7 +16,6 @@ class UserProfile(models.Model):
     role = models.CharField(max_length=10, choices=ROLE_CHOICES)
     institution = models.CharField(max_length=255, default="Not Selected")
 
-
 class StudentProfile(models.Model):
     user = models.OneToOneField(user, on_delete=models.CASCADE, related_name="student_profile", blank=True, null=True)
     avatar = models.ImageField(upload_to='student_avatars/', null=True, blank=True)
@@ -26,3 +25,6 @@ class StudentProfile(models.Model):
     institute = models.CharField(max_length=255, default="")
     experience_points = models.PositiveIntegerField(default=0)
     level = models.IntegerField(default=1)
+
+class JoinedClassrooms(models.Model):
+    pass
