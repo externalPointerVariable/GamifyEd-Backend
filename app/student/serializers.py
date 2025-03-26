@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import UserProfile, StudentProfile
-from teacher.models import TeacherProfile
+from teacher.models import TeacherProfile, Classrooms
 from rest_framework_simplejwt.tokens import RefreshToken
 from teacher.serializers import UserProfileSerializer
 from .models import JoinedClassrooms
@@ -69,16 +69,26 @@ class StudentProfileSerializer(serializers.ModelSerializer):
         return instance
     
 class JoinedClassroomSerializer(serializers.ModelSerializer):
+    classroom_code = serializers.CharField(write_only=True) 
     class Meta:
         model = JoinedClassrooms
-        fields = ['id', 'student', 'classroom', 'joined_at']
-        read_only_fields = ['id', 'joined_at']
-
+        fields = ['id', 'student', 'classroom', 'classroom_code', 'joined_at']
+        read_only_fields = ['id', 'joined_at', 'classroom'] 
     def create(self, validated_data):
-        return JoinedClassrooms.objects.create(**validated_data)
+        student = validated_data['student']
+        classroom_code = validated_data.pop('classroom_code')
 
-    def update(self, instance, validated_data):
-        instance.student = validated_data.get('student', instance.student)
-        instance.classroom = validated_data.get('classroom', instance.classroom)
-        instance.save()
-        return instance
+        try:
+            classroom = Classrooms.objects.get(classroom_code=classroom_code)
+        except Classrooms.DoesNotExist:
+            raise serializers.ValidationError({"error": "Invalid classroom code"})
+
+        if JoinedClassrooms.objects.filter(student=student, classroom=classroom).exists():
+            raise serializers.ValidationError({"error": "Student already joined this classroom"})
+
+        joined_classroom = JoinedClassrooms.objects.create(student=student, classroom=classroom)
+
+        classroom.students += 1
+        classroom.save()
+
+        return joined_classroom
