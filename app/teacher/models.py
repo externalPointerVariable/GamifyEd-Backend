@@ -18,4 +18,5 @@ class Classrooms(models.Model):
     name = models.CharField(max_length=225)
     subject = models.CharField(max_length=225)
     students = models.IntegerField(default=0, validators=[MinValueValidator(0)])
+    classroom_code = models.CharField(max_length=10, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
