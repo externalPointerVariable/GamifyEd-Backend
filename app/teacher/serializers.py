@@ -1,6 +1,7 @@
 from rest_framework import serializers
-from .models import TeacherProfile
+from .models import TeacherProfile, Classrooms
 from django.contrib.auth.models import User
+
 
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
@@ -22,3 +23,23 @@ class TeacherProfileSerializer(serializers.ModelSerializer):
         instance.institute = validated_data.get('institute', instance.institute)
         instance.save()
         return instance
+    
+class ClassroomsManagerSerializer(serializers.ModelSerializer):  
+    class Meta:  
+        model = Classrooms  
+        fields = ['id', 'teacher', 'name', 'subject', 'students', 'classroom_code', 'created_at']  
+        read_only_fields = ['id', 'created_at', 'classroom_code']  
+
+    def create(self, validated_data):  
+        validated_data['classroom_code'] = Classrooms._meta.get_field('classroom_code').get_default()  
+        return Classrooms.objects.create(**validated_data)  
+
+    def update(self, instance, validated_data):  
+        instance.name = validated_data.get('name', instance.name)  
+        instance.subject = validated_data.get('subject', instance.subject)  
+        instance.students = validated_data.get('students', instance.students)  
+        instance.save()  
+        return instance  
+
+    def delete(self, instance):  
+        instance.delete()

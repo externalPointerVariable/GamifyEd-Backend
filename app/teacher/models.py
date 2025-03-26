@@ -1,6 +1,11 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
+import string
+import random
+
+def generateUniqueCode():
+    return "".join(random.choices(string.ascii_uppercase + string.digits, k=6))
 
 user = get_user_model()
 
@@ -14,8 +19,9 @@ class TeacherProfile(models.Model):
 
 
 class Classrooms(models.Model):
-    user = models.CharField(max_length=255, default=user.username)
+    teacher = models.ForeignKey(TeacherProfile, on_delete=models.CASCADE, related_name="classrooms", blank=True, null=True)
     name = models.CharField(max_length=225)
     subject = models.CharField(max_length=225)
     students = models.IntegerField(default=0, validators=[MinValueValidator(0)])
+    classroom_code = models.CharField(max_length=6, unique=True, default=generateUniqueCode)
     created_at = models.DateTimeField(auto_now_add=True)
