@@ -4,6 +4,7 @@ from .models import UserProfile, StudentProfile
 from teacher.models import TeacherProfile
 from rest_framework_simplejwt.tokens import RefreshToken
 from teacher.serializers import UserProfileSerializer
+from .models import JoinedClassrooms
 
 class RegisterSerializer(serializers.ModelSerializer):
     firstName = serializers.CharField(write_only=True)
@@ -64,5 +65,20 @@ class StudentProfileSerializer(serializers.ModelSerializer):
         instance.institute = validated_data.get('institute', instance.institute)
         instance.experience_points = validated_data.get('experience_points', instance.experience_points)
         instance.level = validated_data.get('level', instance.level)
+        instance.save()
+        return instance
+    
+class JoinedClassroomSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = JoinedClassrooms
+        fields = ['id', 'student', 'classroom', 'joined_at']
+        read_only_fields = ['id', 'joined_at']
+
+    def create(self, validated_data):
+        return JoinedClassrooms.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        instance.student = validated_data.get('student', instance.student)
+        instance.classroom = validated_data.get('classroom', instance.classroom)
         instance.save()
         return instance

@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
+from teacher.models import Classrooms
 
 user = get_user_model()
 
@@ -27,4 +28,8 @@ class StudentProfile(models.Model):
     level = models.IntegerField(default=1)
 
 class JoinedClassrooms(models.Model):
-    pass
+    student = models.ForeignKey(StudentProfile, on_delete=models.CASCADE, related_name="joined_classrooms")
+    classroom = models.ForeignKey(Classrooms, on_delete=models.CASCADE, related_name="joined_students")
+    joined_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        unique_together = ('student', 'classroom')
