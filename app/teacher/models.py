@@ -14,7 +14,7 @@ class TeacherProfile(models.Model):
 
 
 class Classrooms(models.Model):
-    teacher = models.ForeignKey(TeacherProfile, on_delete=models.CASCADE, related_name="classrooms")  # 🔹 Key Change Here
+    teacher = models.ForeignKey(TeacherProfile, on_delete=models.CASCADE, related_name="classrooms", blank=True, null=True)
     name = models.CharField(max_length=225)
     subject = models.CharField(max_length=225)
     students = models.IntegerField(default=0, validators=[MinValueValidator(0)])
