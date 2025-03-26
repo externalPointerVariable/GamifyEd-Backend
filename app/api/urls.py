@@ -12,6 +12,6 @@ urlpatterns = [
     path("login/", LoginView.as_view(), name="login"),
     path("profile/", UserProfileView.as_view(), name="user_profile"),
     path("classroom/teacher/", ClassroomsManagerView.as_view(), name="teacher_classroom"),
-    path("classroom/teacher/<int:pk>", ClassroomsManagerView.as_view(), name="Classroom_details"),
-    path("classroom/teacher/<int:teacher_id>", ClassroomsManagerView.as_view(), name="classrooms_groupby_teacher")
+    path("classroom/teacher/<int:pk>/", ClassroomsManagerView.as_view(), name="Classroom_details"),
+    path("classroom/cluster/<int:teacher_id>/", ClassroomsManagerView.as_view(), name="classrooms_groupby_teacher")
 ]

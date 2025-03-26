@@ -43,7 +43,23 @@ class UserProfileView(APIView):
 class ClassroomsManagerView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
+    def get(self, request, pk=None, teacher_id=None):
+        if teacher_id:
+            try:
+                classrooms = Classrooms.objects.filter(teacher__id=teacher_id)
+                serializer = ClassroomsManagerSerializer(classrooms, many=True)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            except Classrooms.DoesNotExist:
+                return Response({"error": "Classrooms not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        if pk:
+            try:
+                classroom = Classrooms.objects.get(pk=pk, teacher=request.user.teacher_profile)
+                serializer = ClassroomsManagerSerializer(classroom)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            except Classrooms.DoesNotExist:
+                return Response({"error": "Classroom not found"}, status=status.HTTP_404_NOT_FOUND)
+
         classrooms = Classrooms.objects.filter(teacher=request.user.teacher_profile)
         serializer = ClassroomsManagerSerializer(classrooms, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
