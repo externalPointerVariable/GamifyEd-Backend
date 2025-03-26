@@ -26,8 +26,8 @@ class TeacherProfileSerializer(serializers.ModelSerializer):
 class ClassroomsManagerSerializer(serializers.Serializer):
     class Meta:
         model = Classrooms
-        fields = ['id', 'teacher', 'name', 'subject', 'students', 'created_at']
-        read_only_fields = ['id', 'created_at']
+        fields = ['teacher', 'name', 'subject', 'students', 'created_at']
+        read_only_fields = ['created_at']
 
     def create (self, validated_data):
         return Classrooms.objects.create(**validated_data)
