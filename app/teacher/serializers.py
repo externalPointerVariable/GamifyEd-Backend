@@ -24,21 +24,18 @@ class TeacherProfileSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
     
-class ClassroomsManagerSerializer(serializers.Serializer):
+class ClassroomsManagerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Classrooms
-        fields = ['teacher', 'name', 'subject', 'students', 'class_code', 'created_at']
-        read_only_fields = ['created_at', 'class_code']
+        fields = ['teacher', 'name', 'subject', 'students', 'classroom_code', 'created_at']
+        read_only_fields = ['created_at', 'classroom_code']
+
     def create(self, validated_data):
-        validated_data['class_code'] = Classrooms._meta.get_field('class_code').get_default()
-        return super().create(validated_data)
-    
+        validated_data['classroom_code'] = Classrooms._meta.get_field('classroom_code').get_default()
+        return Classrooms.objects.create(**validated_data)
     def update(self, instance, validated_data):
         instance.name = validated_data.get('name', instance.name)
         instance.subject = validated_data.get('subject', instance.subject)
         instance.students = validated_data.get('students', instance.students)
         instance.save()
         return instance
-    
-    def delete(self, instance):
-        instance.delete()
