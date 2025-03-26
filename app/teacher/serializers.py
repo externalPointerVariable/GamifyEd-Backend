@@ -27,11 +27,11 @@ class TeacherProfileSerializer(serializers.ModelSerializer):
 class ClassroomsManagerSerializer(serializers.Serializer):
     class Meta:
         model = Classrooms
-        fields = ['teacher', 'name', 'subject', 'students', 'created_at']
-        read_only_fields = ['created_at']
-
-    def create (self, validated_data):
-        return Classrooms.objects.create(**validated_data)
+        fields = ['teacher', 'name', 'subject', 'students', 'class_code', 'created_at']
+        read_only_fields = ['created_at', 'class_code']
+    def create(self, validated_data):
+        validated_data['class_code'] = Classrooms._meta.get_field('class_code').get_default()
+        return super().create(validated_data)
     
     def update(self, instance, validated_data):
         instance.name = validated_data.get('name', instance.name)
