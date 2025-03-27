@@ -1,7 +1,7 @@
 from django.urls import path
 from student.views import RegisterView, LoginView, JoinedClassroomView
 from django.http import JsonResponse
-from teacher.views import UserProfileView, ClassroomsManagerView, ClassroomAnnouncementView
+from teacher.views import UserProfileView, ClassroomsManagerView, ClassroomAnnouncementView, ClassroomSharedMaterialView
 
 def welcomeAPI(request):
     return JsonResponse({"message":"Welcome to the API page of GamifyEd backend server", "status":"success"})
@@ -18,11 +18,14 @@ urlpatterns = [
     path("classroom/teacher/", ClassroomsManagerView.as_view(), name="teacher_classroom"),  # Get all classrooms (teacher)
     path("classroom/teacher/<int:pk>/", ClassroomsManagerView.as_view(), name="classroom_details"),  # Single classroom
     path("classroom/teacher/cluster/<int:teacher_id>/", ClassroomsManagerView.as_view(), name="classrooms_groupby_teacher"),  # Filtered by teacher
-     path("classroom/<int:classroom_id>/announcements/", ClassroomAnnouncementView.as_view(), name="classroom_announcements"),
+    path("classroom/<int:classroom_id>/announcements/", ClassroomAnnouncementView.as_view(), name="classroom_announcements"),
     path("classroom/announcement/<int:pk>/", ClassroomAnnouncementView.as_view(), name="announcement_details"),
-
+    path("classroom/materials/upload/", ClassroomSharedMaterialView.as_view(), name="upload_classroom_material"),
+    
     # Classroom Endpoints (Student)
     path("classroom/student/", JoinedClassroomView.as_view(), name="joined_classrooms"),  # List joined classrooms
     path("classroom/student/join/", JoinedClassroomView.as_view(), name="join_classroom"),  # Join classroom
     path("classroom/student/leave/<int:pk>/", JoinedClassroomView.as_view(), name="leave_classroom"),  # Leave classroom
+    path("classroom/<int:classroom_id>/materials/", ClassroomSharedMaterialView.as_view(), name="classroom_materials"),
+    path("classroom/materials/<int:pk>/", ClassroomSharedMaterialView.as_view(), name="classroom_material_detail"),
 ]

@@ -3,8 +3,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from student.serializers import StudentProfileSerializer
-from .serializers import TeacherProfileSerializer, ClassroomsManagerSerializer, ClassroomAnnouncementSerializer
-from .models import Classrooms, ClassroomAnnouncements
+from .serializers import TeacherProfileSerializer, ClassroomsManagerSerializer, ClassroomAnnouncementSerializer, ClassroomSharedMaterialSerializer
+from .models import Classrooms, ClassroomAnnouncements, ClassroomSharedMaterials
 
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
@@ -164,3 +164,53 @@ class ClassroomAnnouncementView(APIView):
             return Response({"message": "Announcement deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
         except ClassroomAnnouncements.DoesNotExist:
             return Response({"error": "Announcement not found"}, status=status.HTTP_404_NOT_FOUND)
+
+class ClassroomSharedMaterialView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, classroom_id=None, pk=None):
+        """Retrieve shared materials for a classroom or a specific material by ID"""
+        if pk:
+            try:
+                material = ClassroomSharedMaterials.objects.get(pk=pk)
+                serializer = ClassroomSharedMaterialSerializer(material)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            except ClassroomSharedMaterials.DoesNotExist:
+                return Response({"error": "Material not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        if classroom_id:
+            materials = ClassroomSharedMaterials.objects.filter(classroom__id=classroom_id)
+            serializer = ClassroomSharedMaterialSerializer(materials, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        return Response({"error": "Classroom ID is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+    def post(self, request):
+        """Upload a new shared material"""
+        serializer = ClassroomSharedMaterialSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request, pk):
+        """Update details of a shared material"""
+        try:
+            material = ClassroomSharedMaterials.objects.get(pk=pk)
+        except ClassroomSharedMaterials.DoesNotExist:
+            return Response({"error": "Material not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = ClassroomSharedMaterialSerializer(material, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        """Delete a shared material"""
+        try:
+            material = ClassroomSharedMaterials.objects.get(pk=pk)
+            material.delete()
+            return Response({"message": "Material deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+        except ClassroomSharedMaterials.DoesNotExist:
+            return Response({"error": "Material not found"}, status=status.HTTP_404_NOT_FOUND)
