@@ -1,7 +1,7 @@
 from django.urls import path
 from student.views import RegisterView, LoginView, JoinedClassroomView
 from django.http import JsonResponse
-from teacher.views import UserProfileView, ClassroomsManagerView
+from teacher.views import UserProfileView, ClassroomsManagerView, ClassroomAnnouncementView
 
 def welcomeAPI(request):
     return JsonResponse({"message":"Welcome to the API page of GamifyEd backend server", "status":"success"})
