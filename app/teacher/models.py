@@ -1,7 +1,6 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
-from student.models import StudentProfile
 import string
 import random
 
@@ -23,14 +22,8 @@ class Classrooms(models.Model):
     name = models.CharField(max_length=225)
     subject = models.CharField(max_length=225)
     students = models.IntegerField(default=0, validators=[MinValueValidator(0)])
+    students_id = models.JSONField(default=list)
     classroom_code = models.CharField(max_length=6, unique=True, default=generateUniqueCode)
     created_at = models.DateTimeField(auto_now_add=True)
 
-class ClassroomsRecords(models.Model):
-    student = models.ForeignKey(StudentProfile, on_delete=models.CASCADE, related_name="classroom_records")
-    classroom = models.ForeignKey(Classrooms, on_delete=models.CASCADE, related_name="classroom_records")
-    joined_at = models.DateTimeField(auto_now_add=True)
-    left_at = models.DateTimeField(null=True, blank=True)
 
-    class Meta:
-        unique_together = ('student', 'classroom')
