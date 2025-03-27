@@ -44,3 +44,11 @@ class ClassroomAnnouncements(models.Model):
 
     def __str__(self):
         return f"{self.title} - {self.classroom.name}"
+    
+class ClassroomSharedMaterials(models.Model):
+    classroom = models.ForeignKey(Classrooms, on_delete=models.CASCADE, related_name="shared_materials")
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    file = models.FileField(upload_to="classroom_materials/", blank=True, null=True)
+    link = models.URLField(blank=True, null=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
