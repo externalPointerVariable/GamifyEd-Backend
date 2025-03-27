@@ -65,6 +65,8 @@ class ClassroomsManagerView(APIView):
         data = request.data.copy()
         data['teacher'] = request.user.teacher_profile.id
         data.setdefault('students_id', [])
+        data.setdefault('status', 'active')
+        
         serializer = ClassroomsManagerSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
@@ -78,14 +80,19 @@ class ClassroomsManagerView(APIView):
             return Response({"error": "Classroom not found"}, status=status.HTTP_404_NOT_FOUND)
 
         data = request.data.copy()
-        students_id = data.get('students_id')
 
-        if students_id is not None:
-            if isinstance(students_id, list):
-                classroom.students_id = students_id
-                classroom.students = len(students_id)
+        if 'students_id' in data:
+            if isinstance(data['students_id'], list):
+                classroom.students_id = data['students_id']
+                classroom.students = len(data['students_id']) 
             else:
                 return Response({"error": "students_id must be a list"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if 'status' in data:
+            if data['status'] in ["active", "archived"]:
+                classroom.status = data['status']
+            else:
+                return Response({"error": "Invalid status. Must be 'active' or 'archived'."}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = ClassroomsManagerSerializer(classroom, data=data, partial=True)
         if serializer.is_valid():

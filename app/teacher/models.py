@@ -17,13 +17,23 @@ class TeacherProfile(models.Model):
     email = models.EmailField(unique=True)
     institute = models.CharField(max_length=255, default="")
 
+
 class Classrooms(models.Model):
-    teacher = models.ForeignKey(TeacherProfile, on_delete=models.CASCADE, related_name="classrooms", blank=True, null=True)
+    STATUS_CHOICES = [
+        ("active", "Active"),
+        ("archived", "Archived"),
+    ]
+
+    teacher = models.ForeignKey(
+        TeacherProfile, on_delete=models.CASCADE, related_name="classrooms", blank=True, null=True
+    )
     name = models.CharField(max_length=225)
     subject = models.CharField(max_length=225)
     students = models.IntegerField(default=0, validators=[MinValueValidator(0)])
-    students_id = models.JSONField(default=list)
+    students_id = models.JSONField(default=list)  # Stores student IDs
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="active")  # Added status field
     classroom_code = models.CharField(max_length=6, unique=True, default=generateUniqueCode)
     created_at = models.DateTimeField(auto_now_add=True)
+
 
 
