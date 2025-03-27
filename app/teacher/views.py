@@ -3,8 +3,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from student.serializers import StudentProfileSerializer
-from .serializers import TeacherProfileSerializer, ClassroomsManagerSerializer
-from .models import Classrooms
+from .serializers import TeacherProfileSerializer, ClassroomsManagerSerializer, ClassroomAnnouncementSerializer
+from .models import Classrooms, ClassroomAnnouncements
 
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
@@ -107,3 +107,60 @@ class ClassroomsManagerView(APIView):
             return Response({"message": "Classroom deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
         except Classrooms.DoesNotExist:
             return Response({"error": "Classroom not found"}, status=status.HTTP_404_NOT_FOUND)
+class ClassroomAnnouncementView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, classroom_id=None, pk=None):
+        """Get all announcements or a single announcement"""
+        if pk:
+            try:
+                announcement = ClassroomAnnouncements.objects.get(pk=pk, classroom__teacher=request.user.teacher_profile)
+                serializer = ClassroomAnnouncementSerializer(announcement)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            except ClassroomAnnouncements.DoesNotExist:
+                return Response({"error": "Announcement not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        if classroom_id:
+            announcements = ClassroomAnnouncements.objects.filter(classroom_id=classroom_id)
+            serializer = ClassroomAnnouncementSerializer(announcements, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        return Response({"error": "Classroom ID is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+    def post(self, request):
+        """Create a new announcement"""
+        data = request.data.copy()
+        data['classroom'] = request.data.get('classroom_id')
+
+        try:
+            classroom = Classrooms.objects.get(pk=data['classroom'], teacher=request.user.teacher_profile)
+        except Classrooms.DoesNotExist:
+            return Response({"error": "Classroom not found or not owned by you"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = ClassroomAnnouncementSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request, pk):
+        """Update an existing announcement"""
+        try:
+            announcement = ClassroomAnnouncements.objects.get(pk=pk, classroom__teacher=request.user.teacher_profile)
+        except ClassroomAnnouncements.DoesNotExist:
+            return Response({"error": "Announcement not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = ClassroomAnnouncementSerializer(announcement, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        """Delete an announcement"""
+        try:
+            announcement = ClassroomAnnouncements.objects.get(pk=pk, classroom__teacher=request.user.teacher_profile)
+            announcement.delete()
+            return Response({"message": "Announcement deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+        except ClassroomAnnouncements.DoesNotExist:
+            return Response({"error": "Announcement not found"}, status=status.HTTP_404_NOT_FOUND)
