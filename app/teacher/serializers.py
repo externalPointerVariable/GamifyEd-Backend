@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import TeacherProfile, Classrooms, ClassroomAnnouncements,ClassroomSharedMaterials, ClassroomsTestActivities
+from .models import TeacherProfile, Classrooms, ClassroomAnnouncements,ClassroomSharedMaterials, ClassroomsTestActivities, ClassroomCalendarEvents
 from django.contrib.auth.models import User
 
 
@@ -67,3 +67,9 @@ class ClassroomTestActivitiesSerializer(serializers.ModelSerializer):
     class Meta:
         model = ClassroomsTestActivities
         fields = '__all__'
+
+class ClassroomCalendarEventsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ClassroomCalendarEvents
+        fields = ['id', 'classroom', 'title', 'description', 'event_date', 'event_time', 'created_at']
+        read_only_fields = ['id', 'created_at']

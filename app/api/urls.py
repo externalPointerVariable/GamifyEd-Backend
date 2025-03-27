@@ -1,7 +1,7 @@
 from django.urls import path
 from student.views import RegisterView, LoginView, JoinedClassroomView
 from django.http import JsonResponse
-from teacher.views import UserProfileView, ClassroomsManagerView, ClassroomAnnouncementView, ClassroomSharedMaterialView, ClassroomTestActivitiesView
+from teacher.views import UserProfileView, ClassroomsManagerView, ClassroomAnnouncementView, ClassroomSharedMaterialView, ClassroomTestActivitiesView, ClassroomCalendarEventsView
 
 def welcomeAPI(request):
     return JsonResponse({"message":"Welcome to the API page of GamifyEd backend server", "status":"success"})
@@ -24,6 +24,9 @@ urlpatterns = [
     path("classroom/test/", ClassroomTestActivitiesView.as_view(), name="classroom_test_activities"),  # List all test activities
     path("classroom/test/<int:pk>/", ClassroomTestActivitiesView.as_view(), name="classroom_test_activity_detail"),  # Single test activity
     path("classroom/test/class/<int:classroom_id>/", ClassroomTestActivitiesView.as_view(), name="classroom_test_by_class"),  # Tests for a specific classroom
+     path("classroom/calendar/", ClassroomCalendarEventsView.as_view(), name="classroom_calendar"),  # List/Create events
+    path("classroom/calendar/<int:pk>/", ClassroomCalendarEventsView.as_view(), name="calendar_event_detail"),  # Single event
+    path("classroom/calendar/class/<int:classroom_id>/", ClassroomCalendarEventsView.as_view(), name="calendar_by_classroom"),  # Events by classroom
     
     # Classroom Endpoints (Student)
     path("classroom/student/", JoinedClassroomView.as_view(), name="joined_classrooms"),  # List joined classrooms

@@ -3,8 +3,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from student.serializers import StudentProfileSerializer
-from .serializers import TeacherProfileSerializer, ClassroomsManagerSerializer, ClassroomAnnouncementSerializer, ClassroomSharedMaterialSerializer, ClassroomTestActivitiesSerializer
-from .models import Classrooms, ClassroomAnnouncements, ClassroomSharedMaterials, ClassroomsTestActivities
+from .serializers import TeacherProfileSerializer, ClassroomsManagerSerializer, ClassroomAnnouncementSerializer, ClassroomSharedMaterialSerializer, ClassroomTestActivitiesSerializer, ClassroomCalendarEventsSerializer
+from .models import Classrooms, ClassroomAnnouncements, ClassroomSharedMaterials, ClassroomsTestActivities, ClassroomCalendarEvents
 
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
@@ -259,3 +259,49 @@ class ClassroomTestActivitiesView(APIView):
             return Response({"message": "Test activity deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
         except ClassroomsTestActivities.DoesNotExist:
             return Response({"error": "Test activity not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+class ClassroomCalendarEventsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, classroom_id=None, pk=None):
+        if pk:
+            try:
+                event = ClassroomCalendarEvents.objects.get(pk=pk)
+                serializer = ClassroomCalendarEventsSerializer(event)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            except ClassroomCalendarEvents.DoesNotExist:
+                return Response({"error": "Event not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        if classroom_id:
+            events = ClassroomCalendarEvents.objects.filter(classroom_id=classroom_id)
+            serializer = ClassroomCalendarEventsSerializer(events, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        return Response({"error": "Invalid request"}, status=status.HTTP_400_BAD_REQUEST)
+
+    def post(self, request):
+        serializer = ClassroomCalendarEventsSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request, pk):
+        try:
+            event = ClassroomCalendarEvents.objects.get(pk=pk)
+        except ClassroomCalendarEvents.DoesNotExist:
+            return Response({"error": "Event not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = ClassroomCalendarEventsSerializer(event, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        try:
+            event = ClassroomCalendarEvents.objects.get(pk=pk)
+            event.delete()
+            return Response({"message": "Event deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+        except ClassroomCalendarEvents.DoesNotExist:
+            return Response({"error": "Event not found"}, status=status.HTTP_404_NOT_FOUND)
