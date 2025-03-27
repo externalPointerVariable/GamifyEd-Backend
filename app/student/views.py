@@ -30,7 +30,7 @@ class JoinedClassroomView(APIView):
 
     def post(self, request):
         data = request.data.copy()
-        data['student'] = request.user.student_profile.id
+        data['student'] = request.user.student_profile.id 
 
         serializer = JoinedClassroomSerializer(data=data)
         if serializer.is_valid():
@@ -41,7 +41,15 @@ class JoinedClassroomView(APIView):
     def delete(self, request, pk):
         try:
             joined_classroom = JoinedClassrooms.objects.get(pk=pk, student=request.user.student_profile)
+            classroom = joined_classroom.classroom
+
             joined_classroom.delete()
+
+            if classroom.students > 0:
+                classroom.students -= 1
+                classroom.save()
+
             return Response({"message": "Left the classroom successfully"}, status=status.HTTP_204_NO_CONTENT)
+
         except JoinedClassrooms.DoesNotExist:
             return Response({"error": "Classroom not found"}, status=status.HTTP_404_NOT_FOUND)

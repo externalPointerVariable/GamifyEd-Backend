@@ -1,5 +1,5 @@
 from django.urls import path
-from student.views import RegisterView, LoginView
+from student.views import RegisterView, LoginView, JoinedClassroomView
 from django.http import JsonResponse
 from teacher.views import UserProfileView, ClassroomsManagerView
 
@@ -13,5 +13,6 @@ urlpatterns = [
     path("profile/", UserProfileView.as_view(), name="user_profile"),
     path("classroom/teacher/", ClassroomsManagerView.as_view(), name="teacher_classroom"),
     path("classroom/teacher/<int:pk>/", ClassroomsManagerView.as_view(), name="Classroom_details"),
-    path("classroom/cluster/<int:teacher_id>/", ClassroomsManagerView.as_view(), name="classrooms_groupby_teacher")
+    path("classroom/teacher/cluster/<int:teacher_id>/", ClassroomsManagerView.as_view(), name="classrooms_groupby_teacher"),
+    path("classroom/student/", JoinedClassroomView.as_view(), name="Joined_Classrooms"),
 ]
