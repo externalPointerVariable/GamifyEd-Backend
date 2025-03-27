@@ -52,3 +52,9 @@ class ClassroomSharedMaterials(models.Model):
     file = models.FileField(upload_to="classroom_materials/", blank=True, null=True)
     link = models.URLField(blank=True, null=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
+
+class ClassroomsTestActivities(models.Model):
+    classroom = models.ForeignKey(Classrooms, on_delete=models.CASCADE, related_name="test_activities") 
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)

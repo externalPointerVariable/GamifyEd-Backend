@@ -3,8 +3,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from student.serializers import StudentProfileSerializer
-from .serializers import TeacherProfileSerializer, ClassroomsManagerSerializer, ClassroomAnnouncementSerializer, ClassroomSharedMaterialSerializer
-from .models import Classrooms, ClassroomAnnouncements, ClassroomSharedMaterials
+from .serializers import TeacherProfileSerializer, ClassroomsManagerSerializer, ClassroomAnnouncementSerializer, ClassroomSharedMaterialSerializer, ClassroomTestActivitiesSerializer
+from .models import Classrooms, ClassroomAnnouncements, ClassroomSharedMaterials, ClassroomsTestActivities
 
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
@@ -214,3 +214,51 @@ class ClassroomSharedMaterialView(APIView):
             return Response({"message": "Material deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
         except ClassroomSharedMaterials.DoesNotExist:
             return Response({"error": "Material not found"}, status=status.HTTP_404_NOT_FOUND)
+
+class ClassroomTestActivitiesView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk=None, classroom_id=None):
+        if classroom_id:
+            activities = ClassroomsTestActivities.objects.filter(classroom_id=classroom_id)
+            serializer = ClassroomTestActivitiesSerializer(activities, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        if pk:
+            try:
+                activity = ClassroomsTestActivities.objects.get(pk=pk)
+                serializer = ClassroomTestActivitiesSerializer(activity)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            except ClassroomsTestActivities.DoesNotExist:
+                return Response({"error": "Test activity not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        activities = ClassroomsTestActivities.objects.all()
+        serializer = ClassroomTestActivitiesSerializer(activities, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = ClassroomTestActivitiesSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request, pk):
+        try:
+            activity = ClassroomsTestActivities.objects.get(pk=pk)
+        except ClassroomsTestActivities.DoesNotExist:
+            return Response({"error": "Test activity not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = ClassroomTestActivitiesSerializer(activity, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        try:
+            activity = ClassroomsTestActivities.objects.get(pk=pk)
+            activity.delete()
+            return Response({"message": "Test activity deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+        except ClassroomsTestActivities.DoesNotExist:
+            return Response({"error": "Test activity not found"}, status=status.HTTP_404_NOT_FOUND)

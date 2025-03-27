@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import TeacherProfile, Classrooms, ClassroomAnnouncements,ClassroomSharedMaterials
+from .models import TeacherProfile, Classrooms, ClassroomAnnouncements,ClassroomSharedMaterials, ClassroomsTestActivities
 from django.contrib.auth.models import User
 
 
@@ -62,3 +62,8 @@ class ClassroomSharedMaterialSerializer(serializers.ModelSerializer):
         model = ClassroomSharedMaterials
         fields = ['id', 'classroom', 'title', 'description', 'file', 'link', 'uploaded_at']
         read_only_fields = ['id', 'uploaded_at']
+
+class ClassroomTestActivitiesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ClassroomsTestActivities
+        fields = '__all__'
