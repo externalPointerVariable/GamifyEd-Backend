@@ -19,9 +19,50 @@ class TeacherProfile(models.Model):
 
 
 class Classrooms(models.Model):
-    teacher = models.ForeignKey(TeacherProfile, on_delete=models.CASCADE, related_name="classrooms", blank=True, null=True)
+    STATUS_CHOICES = [
+        ("active", "Active"),
+        ("archived", "Archived"),
+    ]
+
+    teacher = models.ForeignKey(
+        TeacherProfile, on_delete=models.CASCADE, related_name="classrooms", blank=True, null=True
+    )
     name = models.CharField(max_length=225)
     subject = models.CharField(max_length=225)
     students = models.IntegerField(default=0, validators=[MinValueValidator(0)])
+    students_id = models.JSONField(default=list) 
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="active") 
     classroom_code = models.CharField(max_length=6, unique=True, default=generateUniqueCode)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+class ClassroomAnnouncements(models.Model):
+    classroom = models.ForeignKey(Classrooms, on_delete=models.CASCADE, related_name="announcements")
+    title = models.CharField(max_length=255)
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.title} - {self.classroom.name}"
+    
+class ClassroomSharedMaterials(models.Model):
+    classroom = models.ForeignKey(Classrooms, on_delete=models.CASCADE, related_name="shared_materials")
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    file = models.FileField(upload_to="classroom_materials/", blank=True, null=True)
+    link = models.URLField(blank=True, null=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+class ClassroomsTestActivities(models.Model):
+    classroom = models.ForeignKey(Classrooms, on_delete=models.CASCADE, related_name="test_activities") 
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+class ClassroomCalendarEvents(models.Model):
+    classroom = models.ForeignKey(Classrooms, on_delete=models.CASCADE, related_name="calendar_events")
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    event_date = models.DateField()
+    event_time = models.TimeField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
