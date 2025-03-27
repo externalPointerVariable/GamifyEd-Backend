@@ -45,12 +45,9 @@ class ClassroomsManagerView(APIView):
 
     def get(self, request, pk=None, teacher_id=None):
         if teacher_id:
-            try:
-                classrooms = Classrooms.objects.filter(teacher__id=teacher_id)
-                serializer = ClassroomsManagerSerializer(classrooms, many=True)
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            except Classrooms.DoesNotExist:
-                return Response({"error": "Classrooms not found"}, status=status.HTTP_404_NOT_FOUND)
+            classrooms = Classrooms.objects.filter(teacher__id=teacher_id)
+            serializer = ClassroomsManagerSerializer(classrooms, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
         if pk:
             try:
@@ -67,7 +64,7 @@ class ClassroomsManagerView(APIView):
     def post(self, request):
         data = request.data.copy()
         data['teacher'] = request.user.teacher_profile.id
-
+        data.setdefault('students_id', [])
         serializer = ClassroomsManagerSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
@@ -80,7 +77,17 @@ class ClassroomsManagerView(APIView):
         except Classrooms.DoesNotExist:
             return Response({"error": "Classroom not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        serializer = ClassroomsManagerSerializer(classroom, data=request.data, partial=True)
+        data = request.data.copy()
+        students_id = data.get('students_id')
+
+        if students_id is not None:
+            if isinstance(students_id, list):
+                classroom.students_id = students_id
+                classroom.students = len(students_id)
+            else:
+                return Response({"error": "students_id must be a list"}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = ClassroomsManagerSerializer(classroom, data=data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)

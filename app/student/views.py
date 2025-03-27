@@ -30,7 +30,24 @@ class JoinedClassroomView(APIView):
 
     def post(self, request):
         data = request.data.copy()
-        data['student'] = request.user.student_profile.id 
+        student_id = request.user.student_profile.id
+        classroom_code = data.get("classroom_code")
+
+        try:
+            classroom = Classrooms.objects.get(classroom_code=classroom_code)
+        except Classrooms.DoesNotExist:
+            return Response({"error": "Invalid classroom code"}, status=status.HTTP_404_NOT_FOUND)
+
+        if str(student_id) in classroom.students_id.split(","):
+            return Response({"error": "Student already joined"}, status=status.HTTP_400_BAD_REQUEST)
+
+        students_list = classroom.students_id.split(",") if classroom.students_id else []
+        students_list.append(str(student_id))
+        classroom.students_id = ",".join(students_list)
+        classroom.students = len(students_list)
+        classroom.save()
+        data["student"] = student_id
+        data["classroom"] = classroom.id 
 
         serializer = JoinedClassroomSerializer(data=data)
         if serializer.is_valid():
@@ -43,12 +60,16 @@ class JoinedClassroomView(APIView):
             joined_classroom = JoinedClassrooms.objects.get(pk=pk, student=request.user.student_profile)
             classroom = joined_classroom.classroom
 
-            joined_classroom.delete()
+            students_list = classroom.students_id.split(",") if classroom.students_id else []
+            student_id = str(request.user.student_profile.id)
 
-            if classroom.students > 0:
-                classroom.students -= 1
+            if student_id in students_list:
+                students_list.remove(student_id)
+                classroom.students_id = ",".join(students_list)
+                classroom.students = len(students_list)
                 classroom.save()
 
+            joined_classroom.delete()
             return Response({"message": "Left the classroom successfully"}, status=status.HTTP_204_NO_CONTENT)
 
         except JoinedClassrooms.DoesNotExist:
