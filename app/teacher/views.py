@@ -128,7 +128,6 @@ class ClassroomAnnouncementView(APIView):
         return Response({"error": "Classroom ID is required"}, status=status.HTTP_400_BAD_REQUEST)
 
     def post(self, request):
-        """Create a new announcement"""
         data = request.data.copy()
         data['classroom'] = request.data.get('classroom_id')
 
@@ -144,7 +143,6 @@ class ClassroomAnnouncementView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def patch(self, request, pk):
-        """Update an existing announcement"""
         try:
             announcement = ClassroomAnnouncements.objects.get(pk=pk, classroom__teacher=request.user.teacher_profile)
         except ClassroomAnnouncements.DoesNotExist:
@@ -157,7 +155,6 @@ class ClassroomAnnouncementView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
-        """Delete an announcement"""
         try:
             announcement = ClassroomAnnouncements.objects.get(pk=pk, classroom__teacher=request.user.teacher_profile)
             announcement.delete()

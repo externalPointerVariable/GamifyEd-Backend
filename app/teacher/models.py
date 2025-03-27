@@ -58,3 +58,11 @@ class ClassroomsTestActivities(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+
+class ClassroomCalendarEvents(models.Model):
+    classroom = models.ForeignKey(Classrooms, on_delete=models.CASCADE, related_name="calendar_events")
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    event_date = models.DateField()
+    event_time = models.TimeField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
