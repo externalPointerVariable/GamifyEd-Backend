@@ -37,11 +37,10 @@ class Classrooms(models.Model):
 
 class ClassroomAnnouncements(models.Model):
     classroom = models.ForeignKey(Classrooms, on_delete=models.CASCADE, related_name="announcements")
-    teacher = models.ForeignKey(TeacherProfile, on_delete=models.CASCADE, related_name="announcements")
     title = models.CharField(max_length=255)
     message = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
-    class Meta:
-        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.title} - {self.classroom.name}"

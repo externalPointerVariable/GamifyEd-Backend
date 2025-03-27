@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import TeacherProfile, Classrooms
+from .models import TeacherProfile, Classrooms, ClassroomAnnouncements
 from django.contrib.auth.models import User
 from django.utils.timezone import now
 
@@ -51,3 +51,9 @@ class ClassroomsManagerSerializer(serializers.ModelSerializer):
 
     def delete(self, instance):  
         instance.delete()
+
+class ClassroomAnnouncementSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ClassroomAnnouncements
+        fields = ['id', 'classroom', 'title', 'message', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
