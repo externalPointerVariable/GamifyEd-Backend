@@ -8,11 +8,19 @@ def welcomeAPI(request):
 
 urlpatterns = [
     path("", welcomeAPI),
+
+    # Auth Endpoints
     path("register/", RegisterView.as_view(), name="register"),
     path("login/", LoginView.as_view(), name="login"),
     path("profile/", UserProfileView.as_view(), name="user_profile"),
-    path("classroom/teacher/", ClassroomsManagerView.as_view(), name="teacher_classroom"),
-    path("classroom/teacher/<int:pk>/", ClassroomsManagerView.as_view(), name="Classroom_details"),
-    path("classroom/teacher/cluster/<int:teacher_id>/", ClassroomsManagerView.as_view(), name="classrooms_groupby_teacher"),
-    path("classroom/student/", JoinedClassroomView.as_view(), name="Joined_Classrooms"),
+
+    # Classroom Endpoints (Teacher)
+    path("classroom/teacher/", ClassroomsManagerView.as_view(), name="teacher_classroom"),  # Get all classrooms (teacher)
+    path("classroom/teacher/<int:pk>/", ClassroomsManagerView.as_view(), name="classroom_details"),  # Single classroom
+    path("classroom/teacher/cluster/<int:teacher_id>/", ClassroomsManagerView.as_view(), name="classrooms_groupby_teacher"),  # Filtered by teacher
+
+    # Classroom Endpoints (Student)
+    path("classroom/student/", JoinedClassroomView.as_view(), name="joined_classrooms"),  # List joined classrooms
+    path("classroom/student/join/", JoinedClassroomView.as_view(), name="join_classroom"),  # Join classroom
+    path("classroom/student/leave/<int:pk>/", JoinedClassroomView.as_view(), name="leave_classroom"),  # Leave classroom
 ]
