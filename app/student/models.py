@@ -49,3 +49,18 @@ class DailyMissions(models.Model):
     is_completed = models.BooleanField(default=False)
     points = models.IntegerField(default=0)  # Points rewarded upon completion
     created_at = models.DateTimeField(auto_now_add=True)
+
+from django.db import models
+from student.models import StudentProfile  # Import StudentProfile
+
+class XPBreakdown(models.Model):
+    student = models.OneToOneField(StudentProfile, on_delete=models.CASCADE, related_name="xp_breakdown")
+    quizes_completed = models.IntegerField(default=0)
+    achievements_earned = models.IntegerField(default=0)
+    daily_logins = models.IntegerField(default=0)
+    total_xp = models.IntegerField(default=0)  # Computed field (sum of all XP sources)
+
+    def calculate_total_xp(self):
+        """Recalculate total XP based on completed activities."""
+        self.total_xp = (self.quizes_completed * 10) + (self.achievements_earned * 20) + (self.daily_logins * 5)
+        self.save()
