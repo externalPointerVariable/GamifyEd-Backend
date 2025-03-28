@@ -1,6 +1,6 @@
 from django.urls import path
 from django.http import JsonResponse
-from student.views import RegisterView, LoginView, JoinedClassroomView, StudentAIPodcastView, PasswordResetView, PasswordResetConfirmView, DailyMissionsView, XPBreakdownView
+from student.views import RegisterView, LoginView, JoinedClassroomView, StudentAIPodcastView, PasswordResetView, PasswordResetConfirmView, DailyMissionsView, XPBreakdownView, StudentCalendarEventView
 from teacher.views import UserProfileView, ClassroomsManagerView, ClassroomAnnouncementView, ClassroomSharedMaterialView, ClassroomTestActivitiesView, ClassroomCalendarEventsView, TeacherRecentActivitiesView, TeacherAIPodcastManagerView
 
 def welcomeAPI(request):
@@ -46,4 +46,7 @@ urlpatterns = [
     path("daily-missions/", DailyMissionsView.as_view(), name="daily_missions"),
     path("daily-missions/<int:pk>/", DailyMissionsView.as_view(), name="update_daily_mission"),
     path("xp-breakdown/", XPBreakdownView.as_view(), name="xp_breakdown"),  # Get and update XP
+    path("calendar/student/", StudentCalendarEventView.as_view(), name="student_calendar_events"),
+    path("calendar/student/<int:pk>/", StudentCalendarEventView.as_view(), name="student_calendar_event_details"),
+    path("calendar/student/student/<int:student_id>/", StudentCalendarEventView.as_view(), name="student_calendar_events_by_student"),
 ]

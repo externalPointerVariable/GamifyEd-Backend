@@ -3,7 +3,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from django.contrib.auth.models import User
-from .models import UserProfile, StudentProfile, JoinedClassrooms, StudentAIPodcast, DailyMissions, XPBreakdown
+from .models import UserProfile, StudentProfile, JoinedClassrooms, StudentAIPodcast, DailyMissions, XPBreakdown, StudentCalendarEvent
 from teacher.models import TeacherProfile, Classrooms
 from rest_framework_simplejwt.tokens import RefreshToken
 from teacher.serializers import UserProfileSerializer
@@ -154,3 +154,9 @@ class XPBreakdownSerializer(serializers.ModelSerializer):
         model = XPBreakdown
         fields = '__all__'
         read_only_fields = ['id', 'total_xp']
+
+class StudentCalendarEventSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StudentCalendarEvent
+        fields = '__all__'
+        read_only_fields = ['id', 'created_at']

@@ -64,3 +64,10 @@ class XPBreakdown(models.Model):
         """Recalculate total XP based on completed activities."""
         self.total_xp = (self.quizes_completed * 10) + (self.achievements_earned * 20) + (self.daily_logins * 5)
         self.save()
+
+class StudentCalendarEvent(models.Model):
+    student = models.ForeignKey(StudentProfile, on_delete=models.CASCADE, related_name="calendar_events")
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    event_date = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
