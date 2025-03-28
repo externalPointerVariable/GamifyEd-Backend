@@ -33,3 +33,66 @@ class JoinedClassrooms(models.Model):
     joined_at = models.DateTimeField(auto_now_add=True)
     class Meta:
         unique_together = ('student', 'classroom')
+
+class StudentAIPodcast(models.Model):
+    student = models.ForeignKey(StudentProfile, on_delete=models.CASCADE, related_name="ai_podcasts")
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    audio = models.URLField()
+    points = models.PositiveIntegerField(default=0)  # Points for creating podcasts
+    created_at = models.DateTimeField(auto_now_add=True)
+
+class DailyMissions(models.Model):
+    student = models.ForeignKey(StudentProfile, on_delete=models.CASCADE, related_name="daily_missions")
+    mission_name = models.CharField(max_length=255)
+    description = models.TextField()
+    is_completed = models.BooleanField(default=False)
+    points = models.IntegerField(default=0)  # Points rewarded upon completion
+    created_at = models.DateTimeField(auto_now_add=True)
+
+from django.db import models
+from student.models import StudentProfile  # Import StudentProfile
+
+class XPBreakdown(models.Model):
+    student = models.OneToOneField(StudentProfile, on_delete=models.CASCADE, related_name="xp_breakdown")
+    quizes_completed = models.IntegerField(default=0)
+    achievements_earned = models.IntegerField(default=0)
+    daily_logins = models.IntegerField(default=0)
+    total_xp = models.IntegerField(default=0)  # Computed field (sum of all XP sources)
+
+    def calculate_total_xp(self):
+        """Recalculate total XP based on completed activities."""
+        self.total_xp = (self.quizes_completed * 10) + (self.achievements_earned * 20) + (self.daily_logins * 5)
+        self.save()
+
+class StudentCalendarEvent(models.Model):
+    student = models.ForeignKey(StudentProfile, on_delete=models.CASCADE, related_name="calendar_events")
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    event_date = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+class LevelHistory(models.Model):
+    student = models.ForeignKey(StudentProfile, on_delete=models.CASCADE, related_name="level_history")
+    level_reached = models.IntegerField()
+    level_achievement = models.CharField(max_length=255)
+    completion_date = models.DateTimeField(auto_now_add=True)
+
+class LevelMilestones(models.Model):
+    STATUS_CHOICES = [
+        ("unlocked", "Unlocked"),
+        ("all", "All"),
+        ("coming_soon", "Coming Soon"),
+    ]
+
+    student = models.ForeignKey(StudentProfile, on_delete=models.CASCADE, related_name="level_milestones")
+    level = models.IntegerField()
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="coming_soon")
+    unlocked_date = models.DateTimeField(null=True, blank=True)
+
+class LevelRewards(models.Model):
+    level = models.IntegerField()
+    rewards = models.TextField()
+    points = models.PositiveIntegerField()

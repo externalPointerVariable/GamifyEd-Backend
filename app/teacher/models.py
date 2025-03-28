@@ -41,9 +41,6 @@ class ClassroomAnnouncements(models.Model):
     message = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return f"{self.title} - {self.classroom.name}"
     
 class ClassroomSharedMaterials(models.Model):
     classroom = models.ForeignKey(Classrooms, on_delete=models.CASCADE, related_name="shared_materials")
@@ -54,9 +51,19 @@ class ClassroomSharedMaterials(models.Model):
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
 class ClassroomsTestActivities(models.Model):
-    classroom = models.ForeignKey(Classrooms, on_delete=models.CASCADE, related_name="test_activities") 
+    STATUS_CHOICES = [
+        ("upcoming", "Upcoming"),
+        ("live", "Live"),
+        ("completed", "Completed"),
+    ]
+
+    classroom = models.ForeignKey(Classrooms, on_delete=models.CASCADE, related_name="test_activities")
     title = models.CharField(max_length=255)
     description = models.TextField()
+    pts = models.IntegerField(default=0)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="upcoming")
+    start_time = models.DateTimeField(blank=True, null=True)
+    end_time = models.DateTimeField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
 class ClassroomCalendarEvents(models.Model):
@@ -65,4 +72,18 @@ class ClassroomCalendarEvents(models.Model):
     description = models.TextField(blank=True, null=True)
     event_date = models.DateField()
     event_time = models.TimeField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+class TeacherRecentActivities(models.Model):
+    teacher = models.ForeignKey(TeacherProfile, on_delete=models.CASCADE, related_name="recent_activities")
+    action = models.CharField(max_length=255)  # Example: "Created a new classroom", "Updated test details"
+    details = models.TextField(blank=True, null=True)  # Additional details about the action
+    created_at = models.DateTimeField(auto_now_add=True)
+
+class TeacherAIPodcastManager(models.Model):
+    classroom = models.ForeignKey(Classrooms, on_delete=models.CASCADE, related_name="podcasts")
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    audio_url = models.URLField(max_length=500)  # URL for the podcast audio
+    created_by = models.ForeignKey(TeacherProfile, on_delete=models.CASCADE, related_name="podcasts")
     created_at = models.DateTimeField(auto_now_add=True)

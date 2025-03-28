@@ -1,10 +1,12 @@
 from rest_framework import serializers
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
 from django.contrib.auth.models import User
-from .models import UserProfile, StudentProfile
+from .models import UserProfile, StudentProfile, JoinedClassrooms, StudentAIPodcast, DailyMissions, XPBreakdown, StudentCalendarEvent, LevelHistory, LevelMilestones, LevelRewards
 from teacher.models import TeacherProfile, Classrooms
 from rest_framework_simplejwt.tokens import RefreshToken
 from teacher.serializers import UserProfileSerializer
-from .models import JoinedClassrooms
 
 class RegisterSerializer(serializers.ModelSerializer):
     firstName = serializers.CharField(write_only=True)
@@ -51,6 +53,48 @@ class LoginSerializer(serializers.Serializer):
             }
         raise serializers.ValidationError("Invalid credentials")
     
+class PasswordResetSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    def validate_email(self, value):
+        """
+        Validate if the email exists in the system.
+        """
+        try:
+            user = User.objects.get(email=value)
+        except User.DoesNotExist:
+            raise serializers.ValidationError("User with this email does not exist.")
+
+        return value
+
+    def save(self, request):
+        """
+        Generate a password reset token and send email.
+        """
+        email = self.validated_data['email']
+        user = User.objects.get(email=email)
+
+        # Generate password reset token
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token = default_token_generator.make_token(user)
+
+        # You can integrate an email-sending service here
+        reset_link = f"{request.build_absolute_uri('/password-reset-confirm/')}?uid={uid}&token={token}"
+        print(f"Password reset link: {reset_link}")  # Debugging purposes
+
+        # Here you can add email-sending logic
+        return reset_link
+    
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    password = serializers.CharField(write_only=True, min_length=8)
+    confirm_password = serializers.CharField(write_only=True, min_length=8)
+
+    def validate(self, data):
+        if data["password"] != data["confirm_password"]:
+            raise serializers.ValidationError("Passwords do not match")
+        return data
+        
 class StudentProfileSerializer(serializers.ModelSerializer):
     user = UserProfileSerializer(read_only=True)
 
@@ -92,3 +136,45 @@ class JoinedClassroomSerializer(serializers.ModelSerializer):
         classroom.save()
 
         return joined_classroom
+    
+class StudentAIPodcastSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StudentAIPodcast
+        fields = ['id', 'student', 'title', 'description', 'audio', 'points', 'created_at']
+        read_only_fields = ['id', 'student', 'created_at']
+
+class DailyMissionsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DailyMissions
+        fields = '__all__'
+        read_only_fields = ['id', 'created_at']
+
+class XPBreakdownSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = XPBreakdown
+        fields = '__all__'
+        read_only_fields = ['id', 'total_xp']
+
+class StudentCalendarEventSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StudentCalendarEvent
+        fields = '__all__'
+        read_only_fields = ['id', 'created_at']
+
+class LevelHistorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LevelHistory
+        fields = '__all__'
+        read_only_fields = ['id', 'completion_date']
+
+class LevelMilestonesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LevelMilestones
+        fields = '__all__'
+        read_only_fields = ['id', 'unlocked_date']
+
+class LevelRewardsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LevelRewards
+        fields = '__all__'
+        read_only_fields = ['id']

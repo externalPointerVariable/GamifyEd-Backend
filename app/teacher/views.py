@@ -3,8 +3,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from student.serializers import StudentProfileSerializer
-from .serializers import TeacherProfileSerializer, ClassroomsManagerSerializer, ClassroomAnnouncementSerializer, ClassroomSharedMaterialSerializer, ClassroomTestActivitiesSerializer, ClassroomCalendarEventsSerializer
-from .models import Classrooms, ClassroomAnnouncements, ClassroomSharedMaterials, ClassroomsTestActivities, ClassroomCalendarEvents
+from .serializers import TeacherProfileSerializer, ClassroomsManagerSerializer, ClassroomAnnouncementSerializer, ClassroomSharedMaterialSerializer, ClassroomTestActivitiesSerializer, ClassroomCalendarEventsSerializer, TeacherRecentActivitiesSerializer, TeacherAIPodcastManagerSerializer
+from .models import Classrooms, ClassroomAnnouncements, ClassroomSharedMaterials, ClassroomsTestActivities, ClassroomCalendarEvents,TeacherRecentActivities,TeacherAIPodcastManager
 
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
@@ -234,7 +234,13 @@ class ClassroomTestActivitiesView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
-        serializer = ClassroomTestActivitiesSerializer(data=request.data)
+        data = request.data.copy()
+
+        # Ensure default values if not provided
+        data.setdefault('pts', 0)  # Default points to 0 if not provided
+        data.setdefault('status', 'upcoming')  # Default status is 'upcoming'
+
+        serializer = ClassroomTestActivitiesSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -246,7 +252,14 @@ class ClassroomTestActivitiesView(APIView):
         except ClassroomsTestActivities.DoesNotExist:
             return Response({"error": "Test activity not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        serializer = ClassroomTestActivitiesSerializer(activity, data=request.data, partial=True)
+        data = request.data.copy()
+
+        # Ensure valid status if provided
+        valid_statuses = ["upcoming", "live", "completed"]
+        if "status" in data and data["status"] not in valid_statuses:
+            return Response({"error": "Invalid status. Allowed values: upcoming, live, completed"}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = ClassroomTestActivitiesSerializer(activity, data=data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -259,7 +272,7 @@ class ClassroomTestActivitiesView(APIView):
             return Response({"message": "Test activity deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
         except ClassroomsTestActivities.DoesNotExist:
             return Response({"error": "Test activity not found"}, status=status.HTTP_404_NOT_FOUND)
-        
+   
 class ClassroomCalendarEventsView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -305,3 +318,52 @@ class ClassroomCalendarEventsView(APIView):
             return Response({"message": "Event deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
         except ClassroomCalendarEvents.DoesNotExist:
             return Response({"error": "Event not found"}, status=status.HTTP_404_NOT_FOUND)
+
+class TeacherRecentActivitiesView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, teacher_id=None):
+        if teacher_id:
+            activities = TeacherRecentActivities.objects.filter(teacher__id=teacher_id).order_by('-created_at')
+            serializer = TeacherRecentActivitiesSerializer(activities, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        return Response({"error": "Invalid request"}, status=status.HTTP_400_BAD_REQUEST)
+
+    def post(self, request):
+        serializer = TeacherRecentActivitiesSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class TeacherAIPodcastManagerView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, classroom_id=None):
+        if classroom_id:
+            podcasts = TeacherAIPodcastManager.objects.filter(classroom__id=classroom_id).order_by('-created_at')
+            serializer = TeacherAIPodcastManagerSerializer(podcasts, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response({"error": "Invalid request"}, status=status.HTTP_400_BAD_REQUEST)
+
+    def post(self, request):
+        if not hasattr(request.user, 'teacher_profile'):
+            return Response({"error": "Only teachers can upload podcasts"}, status=status.HTTP_403_FORBIDDEN)
+
+        data = request.data.copy()
+        data['created_by'] = request.user.teacher_profile.id
+        serializer = TeacherAIPodcastManagerSerializer(data=data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        try:
+            podcast = TeacherAIPodcastManager.objects.get(pk=pk, created_by=request.user.teacher_profile)
+            podcast.delete()
+            return Response({"message": "Podcast deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+        except TeacherAIPodcastManager.DoesNotExist:
+            return Response({"error": "Podcast not found"}, status=status.HTTP_404_NOT_FOUND)
