@@ -24,7 +24,7 @@ urlpatterns = [
     path("classroom/test/", ClassroomTestActivitiesView.as_view(), name="classroom_test_activities"),  # List all test activities
     path("classroom/test/<int:pk>/", ClassroomTestActivitiesView.as_view(), name="classroom_test_activity_detail"),  # Single test activity
     path("classroom/test/class/<int:classroom_id>/", ClassroomTestActivitiesView.as_view(), name="classroom_test_by_class"),  # Tests for a specific classroom
-     path("classroom/calendar/", ClassroomCalendarEventsView.as_view(), name="classroom_calendar"),  # List/Create events
+    path("classroom/calendar/", ClassroomCalendarEventsView.as_view(), name="classroom_calendar"),  # List/Create events
     path("classroom/calendar/<int:pk>/", ClassroomCalendarEventsView.as_view(), name="calendar_event_detail"),  # Single event
     path("classroom/calendar/class/<int:classroom_id>/", ClassroomCalendarEventsView.as_view(), name="calendar_by_classroom"),  # Events by classroom
     
