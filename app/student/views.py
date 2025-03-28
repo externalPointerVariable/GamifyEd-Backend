@@ -7,8 +7,8 @@ from rest_framework.views import APIView
 from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth.tokens import default_token_generator
 from teacher.models import Classrooms
-from .serializers import RegisterSerializer, LoginSerializer, JoinedClassroomSerializer, StudentAIPodcastSerializer, PasswordResetSerializer, PasswordResetConfirmSerializer, DailyMissionsSerializer, XPBreakdownSerializer, StudentCalendarEventSerializer, LevelHistorySerializer
-from .models import JoinedClassrooms, StudentAIPodcast, DailyMissions, StudentProfile, XPBreakdown, StudentCalendarEvent, LevelHistory
+from .serializers import RegisterSerializer, LoginSerializer, JoinedClassroomSerializer, StudentAIPodcastSerializer, PasswordResetSerializer, PasswordResetConfirmSerializer, DailyMissionsSerializer, XPBreakdownSerializer, StudentCalendarEventSerializer, LevelHistorySerializer, LevelMilestonesSerializer
+from .models import JoinedClassrooms, StudentAIPodcast, DailyMissions, StudentProfile, XPBreakdown, StudentCalendarEvent, LevelHistory, LevelMilestones
 
 class RegisterView(CreateAPIView):
     queryset = User.objects.all()
@@ -323,3 +323,51 @@ class LevelHistoryView(APIView):
             return Response({"message": "Level history deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
         except LevelHistory.DoesNotExist:
             return Response({"error": "Level history not found"}, status=status.HTTP_404_NOT_FOUND)
+
+class LevelMilestonesView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk=None, student_id=None):
+        if student_id:
+            milestones = LevelMilestones.objects.filter(student_id=student_id)
+            serializer = LevelMilestonesSerializer(milestones, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        if pk:
+            try:
+                milestone = LevelMilestones.objects.get(pk=pk)
+                serializer = LevelMilestonesSerializer(milestone)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            except LevelMilestones.DoesNotExist:
+                return Response({"error": "Milestone not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        milestones = LevelMilestones.objects.all()
+        serializer = LevelMilestonesSerializer(milestones, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = LevelMilestonesSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request, pk):
+        try:
+            milestone = LevelMilestones.objects.get(pk=pk)
+        except LevelMilestones.DoesNotExist:
+            return Response({"error": "Milestone not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = LevelMilestonesSerializer(milestone, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        try:
+            milestone = LevelMilestones.objects.get(pk=pk)
+            milestone.delete()
+            return Response({"message": "Milestone deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+        except LevelMilestones.DoesNotExist:
+            return Response({"error": "Milestone not found"}, status=status.HTTP_404_NOT_FOUND)

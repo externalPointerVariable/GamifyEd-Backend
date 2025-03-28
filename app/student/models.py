@@ -77,3 +77,17 @@ class LevelHistory(models.Model):
     level_reached = models.IntegerField()
     level_achievement = models.CharField(max_length=255)
     completion_date = models.DateTimeField(auto_now_add=True)
+
+class LevelMilestones(models.Model):
+    STATUS_CHOICES = [
+        ("unlocked", "Unlocked"),
+        ("all", "All"),
+        ("coming_soon", "Coming Soon"),
+    ]
+
+    student = models.ForeignKey(StudentProfile, on_delete=models.CASCADE, related_name="level_milestones")
+    level = models.IntegerField()
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="coming_soon")
+    unlocked_date = models.DateTimeField(null=True, blank=True)

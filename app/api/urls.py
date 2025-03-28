@@ -1,6 +1,6 @@
 from django.urls import path
 from django.http import JsonResponse
-from student.views import RegisterView, LoginView, JoinedClassroomView, StudentAIPodcastView, PasswordResetView, PasswordResetConfirmView, DailyMissionsView, XPBreakdownView, StudentCalendarEventView, LevelHistoryView
+from student.views import RegisterView, LoginView, JoinedClassroomView, StudentAIPodcastView, PasswordResetView, PasswordResetConfirmView, DailyMissionsView, XPBreakdownView, StudentCalendarEventView, LevelHistoryView, LevelMilestonesView
 from teacher.views import UserProfileView, ClassroomsManagerView, ClassroomAnnouncementView, ClassroomSharedMaterialView, ClassroomTestActivitiesView, ClassroomCalendarEventsView, TeacherRecentActivitiesView, TeacherAIPodcastManagerView
 
 def welcomeAPI(request):
@@ -52,4 +52,7 @@ urlpatterns = [
     path("level-history/", LevelHistoryView.as_view(), name="level_history"),
     path("level-history/<int:pk>/", LevelHistoryView.as_view(), name="level_history_detail"),
     path("level-history/student/<int:student_id>/", LevelHistoryView.as_view(), name="level_history_by_student"),
+    path("level-milestones/", LevelMilestonesView.as_view(), name="level_milestones"),
+    path("level-milestones/<int:pk>/", LevelMilestonesView.as_view(), name="level_milestone_detail"),
+    path("level-milestones/student/<int:student_id>/", LevelMilestonesView.as_view(), name="level_milestones_by_student"),
 ]
