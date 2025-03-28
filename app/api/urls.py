@@ -1,6 +1,6 @@
 from django.urls import path
 from django.http import JsonResponse
-from student.views import RegisterView, LoginView, JoinedClassroomView, StudentAIPodcastView, PasswordResetView, PasswordResetConfirmView
+from student.views import RegisterView, LoginView, JoinedClassroomView, StudentAIPodcastView, PasswordResetView, PasswordResetConfirmView, DailyMissionsView
 from teacher.views import UserProfileView, ClassroomsManagerView, ClassroomAnnouncementView, ClassroomSharedMaterialView, ClassroomTestActivitiesView, ClassroomCalendarEventsView, TeacherRecentActivitiesView, TeacherAIPodcastManagerView
 
 def welcomeAPI(request):
@@ -43,4 +43,6 @@ urlpatterns = [
     path("student/podcast/", StudentAIPodcastView.as_view(), name="student_podcast_list"),  # Get all / Create
     path("student/podcast/<int:pk>/", StudentAIPodcastView.as_view(), name="student_podcast_detail"),  # Get / Update / Delete
     path("student/podcast/cluster/<int:student_id>/", StudentAIPodcastView.as_view(), name="student_podcast_by_student"),  # Get by student
+    path("daily-missions/", DailyMissionsView.as_view(), name="daily_missions"),
+    path("daily-missions/<int:pk>/", DailyMissionsView.as_view(), name="update_daily_mission"),
 ]

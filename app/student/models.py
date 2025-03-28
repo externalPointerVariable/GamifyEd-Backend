@@ -41,3 +41,11 @@ class StudentAIPodcast(models.Model):
     audio = models.URLField()
     points = models.PositiveIntegerField(default=0)  # Points for creating podcasts
     created_at = models.DateTimeField(auto_now_add=True)
+
+class DailyMissions(models.Model):
+    student = models.ForeignKey(StudentProfile, on_delete=models.CASCADE, related_name="daily_missions")
+    mission_name = models.CharField(max_length=255)
+    description = models.TextField()
+    is_completed = models.BooleanField(default=False)
+    points = models.IntegerField(default=0)  # Points rewarded upon completion
+    created_at = models.DateTimeField(auto_now_add=True)

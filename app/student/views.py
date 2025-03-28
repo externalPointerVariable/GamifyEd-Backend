@@ -1,14 +1,14 @@
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from .serializers import RegisterSerializer, LoginSerializer, JoinedClassroomSerializer, StudentAIPodcastSerializer, PasswordResetSerializer, PasswordResetConfirmSerializer
 from rest_framework.generics import CreateAPIView
 from django.contrib.auth.models import User
 from rest_framework.views import APIView
 from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth.tokens import default_token_generator
 from teacher.models import Classrooms
-from .models import JoinedClassrooms, StudentAIPodcast
+from .serializers import RegisterSerializer, LoginSerializer, JoinedClassroomSerializer, StudentAIPodcastSerializer, PasswordResetSerializer, PasswordResetConfirmSerializer, DailyMissionsSerializer
+from .models import JoinedClassrooms, StudentAIPodcast, DailyMissions, StudentProfile
 
 class RegisterView(CreateAPIView):
     queryset = User.objects.all()
@@ -161,3 +161,41 @@ class StudentAIPodcastView(APIView):
             return Response({"message": "Podcast deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
         except StudentAIPodcast.DoesNotExist:
             return Response({"error": "Podcast not found"}, status=status.HTTP_404_NOT_FOUND)
+
+class DailyMissionsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            student = request.user.student_profile  # Get student profile
+            missions = DailyMissions.objects.filter(student=student)
+            serializer = DailyMissionsSerializer(missions, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except StudentProfile.DoesNotExist:
+            return Response({"error": "Student profile not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    def post(self, request):
+        try:
+            student = request.user.student_profile
+            data = request.data.copy()
+            data['student'] = student.id
+            serializer = DailyMissionsSerializer(data=data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except StudentProfile.DoesNotExist:
+            return Response({"error": "Student profile not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    def patch(self, request, pk):
+        try:
+            student = request.user.student_profile
+            mission = DailyMissions.objects.get(pk=pk, student=student)
+        except (StudentProfile.DoesNotExist, DailyMissions.DoesNotExist):
+            return Response({"error": "Mission not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = DailyMissionsSerializer(mission, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
