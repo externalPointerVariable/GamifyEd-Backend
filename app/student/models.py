@@ -33,3 +33,11 @@ class JoinedClassrooms(models.Model):
     joined_at = models.DateTimeField(auto_now_add=True)
     class Meta:
         unique_together = ('student', 'classroom')
+
+class StudentAIPodcast(models.Model):
+    student = models.ForeignKey(StudentProfile, on_delete=models.CASCADE, related_name="ai_podcasts")
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    audio = models.URLField()
+    points = models.PositiveIntegerField(default=0)  # Points for creating podcasts
+    created_at = models.DateTimeField(auto_now_add=True)

@@ -1,10 +1,9 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import UserProfile, StudentProfile
+from .models import UserProfile, StudentProfile, JoinedClassrooms, StudentAIPodcast
 from teacher.models import TeacherProfile, Classrooms
 from rest_framework_simplejwt.tokens import RefreshToken
 from teacher.serializers import UserProfileSerializer
-from .models import JoinedClassrooms
 
 class RegisterSerializer(serializers.ModelSerializer):
     firstName = serializers.CharField(write_only=True)
@@ -92,3 +91,9 @@ class JoinedClassroomSerializer(serializers.ModelSerializer):
         classroom.save()
 
         return joined_classroom
+    
+class StudentAIPodcastSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StudentAIPodcast
+        fields = ['id', 'student', 'title', 'description', 'audio', 'points', 'created_at']
+        read_only_fields = ['id', 'student', 'created_at']
