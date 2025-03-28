@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import TeacherProfile, Classrooms, ClassroomAnnouncements,ClassroomSharedMaterials, ClassroomsTestActivities, ClassroomCalendarEvents, TeacherRecentActivities
+from .models import TeacherProfile, Classrooms, ClassroomAnnouncements,ClassroomSharedMaterials, ClassroomsTestActivities, ClassroomCalendarEvents, TeacherRecentActivities, TeacherAIPodcastManager
 from django.contrib.auth.models import User
 
 
@@ -78,4 +78,10 @@ class TeacherRecentActivitiesSerializer(serializers.ModelSerializer):
     class Meta:
         model = TeacherRecentActivities
         fields = ['id', 'teacher', 'action', 'details', 'created_at']
+        read_only_fields = ['id', 'created_at']
+
+class TeacherAIPodcastManagerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TeacherAIPodcastManager
+        fields = ['id', 'classroom', 'title', 'description', 'audio_url', 'created_by', 'created_at']
         read_only_fields = ['id', 'created_at']

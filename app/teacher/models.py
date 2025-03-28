@@ -69,3 +69,11 @@ class TeacherRecentActivities(models.Model):
     action = models.CharField(max_length=255)  # Example: "Created a new classroom", "Updated test details"
     details = models.TextField(blank=True, null=True)  # Additional details about the action
     created_at = models.DateTimeField(auto_now_add=True)
+
+class TeacherAIPodcastManager(models.Model):
+    classroom = models.ForeignKey(Classrooms, on_delete=models.CASCADE, related_name="podcasts")
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    audio_url = models.URLField(max_length=500)  # URL for the podcast audio
+    created_by = models.ForeignKey(TeacherProfile, on_delete=models.CASCADE, related_name="podcasts")
+    created_at = models.DateTimeField(auto_now_add=True)

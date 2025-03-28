@@ -1,7 +1,7 @@
 from django.urls import path
 from student.views import RegisterView, LoginView, JoinedClassroomView
 from django.http import JsonResponse
-from teacher.views import UserProfileView, ClassroomsManagerView, ClassroomAnnouncementView, ClassroomSharedMaterialView, ClassroomTestActivitiesView, ClassroomCalendarEventsView, TeacherRecentActivitiesView
+from teacher.views import UserProfileView, ClassroomsManagerView, ClassroomAnnouncementView, ClassroomSharedMaterialView, ClassroomTestActivitiesView, ClassroomCalendarEventsView, TeacherRecentActivitiesView, TeacherAIPodcastManagerView
 
 def welcomeAPI(request):
     return JsonResponse({"message":"Welcome to the API page of GamifyEd backend server", "status":"success"})
@@ -28,6 +28,9 @@ urlpatterns = [
     path("classroom/calendar/<int:pk>/", ClassroomCalendarEventsView.as_view(), name="calendar_event_detail"),  # Single event
     path("classroom/calendar/class/<int:classroom_id>/", ClassroomCalendarEventsView.as_view(), name="calendar_by_classroom"),  # Events by classroom
     path("teacher/activities/<int:teacher_id>/", TeacherRecentActivitiesView.as_view(), name="teacher_recent_activities"),  # List recent activities by teacher
+    path("classroom/<int:classroom_id>/podcasts/", TeacherAIPodcastManagerView.as_view(), name="classroom_podcasts"),  # List podcasts for a classroom
+    path("classroom/podcast/upload/", TeacherAIPodcastManagerView.as_view(), name="upload_podcast"),  # Upload a new podcast (Teacher only)
+    path("classroom/podcast/delete/<int:pk>/", TeacherAIPodcastManagerView.as_view(), name="delete_podcast"),  # Delete a podcast
     
     # Classroom Endpoints (Student)
     path("classroom/student/", JoinedClassroomView.as_view(), name="joined_classrooms"),  # List joined classrooms
