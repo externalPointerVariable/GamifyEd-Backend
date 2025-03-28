@@ -1,4 +1,7 @@
 from rest_framework import serializers
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
 from django.contrib.auth.models import User
 from .models import UserProfile, StudentProfile, JoinedClassrooms, StudentAIPodcast
 from teacher.models import TeacherProfile, Classrooms
@@ -50,6 +53,48 @@ class LoginSerializer(serializers.Serializer):
             }
         raise serializers.ValidationError("Invalid credentials")
     
+class PasswordResetSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    def validate_email(self, value):
+        """
+        Validate if the email exists in the system.
+        """
+        try:
+            user = User.objects.get(email=value)
+        except User.DoesNotExist:
+            raise serializers.ValidationError("User with this email does not exist.")
+
+        return value
+
+    def save(self, request):
+        """
+        Generate a password reset token and send email.
+        """
+        email = self.validated_data['email']
+        user = User.objects.get(email=email)
+
+        # Generate password reset token
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token = default_token_generator.make_token(user)
+
+        # You can integrate an email-sending service here
+        reset_link = f"{request.build_absolute_uri('/password-reset-confirm/')}?uid={uid}&token={token}"
+        print(f"Password reset link: {reset_link}")  # Debugging purposes
+
+        # Here you can add email-sending logic
+        return reset_link
+    
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    password = serializers.CharField(write_only=True, min_length=8)
+    confirm_password = serializers.CharField(write_only=True, min_length=8)
+
+    def validate(self, data):
+        if data["password"] != data["confirm_password"]:
+            raise serializers.ValidationError("Passwords do not match")
+        return data
+        
 class StudentProfileSerializer(serializers.ModelSerializer):
     user = UserProfileSerializer(read_only=True)
 

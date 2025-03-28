@@ -1,6 +1,6 @@
 from django.urls import path
 from django.http import JsonResponse
-from student.views import RegisterView, LoginView, JoinedClassroomView, StudentAIPodcastView
+from student.views import RegisterView, LoginView, JoinedClassroomView, StudentAIPodcastView, PasswordResetView, PasswordResetConfirmView
 from teacher.views import UserProfileView, ClassroomsManagerView, ClassroomAnnouncementView, ClassroomSharedMaterialView, ClassroomTestActivitiesView, ClassroomCalendarEventsView, TeacherRecentActivitiesView, TeacherAIPodcastManagerView
 
 def welcomeAPI(request):
@@ -13,6 +13,8 @@ urlpatterns = [
     path("register/", RegisterView.as_view(), name="register"),
     path("login/", LoginView.as_view(), name="login"),
     path("profile/", UserProfileView.as_view(), name="user_profile"),
+    path("password-reset/", PasswordResetView.as_view(), name="password_reset"),
+    path('password-reset-confirm/<uidb64>/<token>/', PasswordResetConfirmView.as_view(), name="password_reset_confirm"),
 
     # Classroom Endpoints (Teacher)
     path("classroom/teacher/", ClassroomsManagerView.as_view(), name="teacher_classroom"),  # Get all classrooms (teacher)
