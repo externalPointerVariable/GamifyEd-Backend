@@ -66,7 +66,8 @@ class ClassroomSharedMaterialSerializer(serializers.ModelSerializer):
 class ClassroomTestActivitiesSerializer(serializers.ModelSerializer):
     class Meta:
         model = ClassroomsTestActivities
-        fields = '__all__'
+        fields = ['id', 'classroom', 'title', 'description', 'pts', 'status', 'created_at']
+        read_only_fields = ['id', 'created_at']
 
 class ClassroomCalendarEventsSerializer(serializers.ModelSerializer):
     class Meta:

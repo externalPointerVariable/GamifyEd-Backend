@@ -51,9 +51,19 @@ class ClassroomSharedMaterials(models.Model):
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
 class ClassroomsTestActivities(models.Model):
-    classroom = models.ForeignKey(Classrooms, on_delete=models.CASCADE, related_name="test_activities") 
+    STATUS_CHOICES = [
+        ("upcoming", "Upcoming"),
+        ("live", "Live"),
+        ("completed", "Completed"),
+    ]
+
+    classroom = models.ForeignKey(Classrooms, on_delete=models.CASCADE, related_name="test_activities")
     title = models.CharField(max_length=255)
     description = models.TextField()
+    pts = models.IntegerField(default=0)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="upcoming")
+    start_time = models.DateTimeField()
+    end_time = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
 
 class ClassroomCalendarEvents(models.Model):

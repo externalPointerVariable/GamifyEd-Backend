@@ -234,7 +234,13 @@ class ClassroomTestActivitiesView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
-        serializer = ClassroomTestActivitiesSerializer(data=request.data)
+        data = request.data.copy()
+
+        # Ensure default values if not provided
+        data.setdefault('pts', 0)  # Default points to 0 if not provided
+        data.setdefault('status', 'upcoming')  # Default status is 'upcoming'
+
+        serializer = ClassroomTestActivitiesSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -246,7 +252,14 @@ class ClassroomTestActivitiesView(APIView):
         except ClassroomsTestActivities.DoesNotExist:
             return Response({"error": "Test activity not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        serializer = ClassroomTestActivitiesSerializer(activity, data=request.data, partial=True)
+        data = request.data.copy()
+
+        # Ensure valid status if provided
+        valid_statuses = ["upcoming", "live", "completed"]
+        if "status" in data and data["status"] not in valid_statuses:
+            return Response({"error": "Invalid status. Allowed values: upcoming, live, completed"}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = ClassroomTestActivitiesSerializer(activity, data=data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -259,7 +272,7 @@ class ClassroomTestActivitiesView(APIView):
             return Response({"message": "Test activity deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
         except ClassroomsTestActivities.DoesNotExist:
             return Response({"error": "Test activity not found"}, status=status.HTTP_404_NOT_FOUND)
-        
+   
 class ClassroomCalendarEventsView(APIView):
     permission_classes = [IsAuthenticated]
 
