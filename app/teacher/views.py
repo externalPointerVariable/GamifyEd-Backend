@@ -3,8 +3,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from student.serializers import StudentProfileSerializer
-from .serializers import TeacherProfileSerializer, ClassroomsManagerSerializer, ClassroomAnnouncementSerializer, ClassroomSharedMaterialSerializer, ClassroomTestActivitiesSerializer, ClassroomCalendarEventsSerializer
-from .models import Classrooms, ClassroomAnnouncements, ClassroomSharedMaterials, ClassroomsTestActivities, ClassroomCalendarEvents
+from .serializers import TeacherProfileSerializer, ClassroomsManagerSerializer, ClassroomAnnouncementSerializer, ClassroomSharedMaterialSerializer, ClassroomTestActivitiesSerializer, ClassroomCalendarEventsSerializer, TeacherRecentActivitiesSerializer
+from .models import Classrooms, ClassroomAnnouncements, ClassroomSharedMaterials, ClassroomsTestActivities, ClassroomCalendarEvents,TeacherRecentActivities
 
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
@@ -305,3 +305,21 @@ class ClassroomCalendarEventsView(APIView):
             return Response({"message": "Event deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
         except ClassroomCalendarEvents.DoesNotExist:
             return Response({"error": "Event not found"}, status=status.HTTP_404_NOT_FOUND)
+
+class TeacherRecentActivitiesView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, teacher_id=None):
+        if teacher_id:
+            activities = TeacherRecentActivities.objects.filter(teacher__id=teacher_id).order_by('-created_at')
+            serializer = TeacherRecentActivitiesSerializer(activities, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        return Response({"error": "Invalid request"}, status=status.HTTP_400_BAD_REQUEST)
+
+    def post(self, request):
+        serializer = TeacherRecentActivitiesSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

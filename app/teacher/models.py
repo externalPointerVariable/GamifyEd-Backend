@@ -41,9 +41,6 @@ class ClassroomAnnouncements(models.Model):
     message = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return f"{self.title} - {self.classroom.name}"
     
 class ClassroomSharedMaterials(models.Model):
     classroom = models.ForeignKey(Classrooms, on_delete=models.CASCADE, related_name="shared_materials")
@@ -65,4 +62,10 @@ class ClassroomCalendarEvents(models.Model):
     description = models.TextField(blank=True, null=True)
     event_date = models.DateField()
     event_time = models.TimeField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+class TeacherRecentActivities(models.Model):
+    teacher = models.ForeignKey(TeacherProfile, on_delete=models.CASCADE, related_name="recent_activities")
+    action = models.CharField(max_length=255)  # Example: "Created a new classroom", "Updated test details"
+    details = models.TextField(blank=True, null=True)  # Additional details about the action
     created_at = models.DateTimeField(auto_now_add=True)
