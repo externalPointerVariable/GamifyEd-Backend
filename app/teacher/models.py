@@ -62,8 +62,8 @@ class ClassroomsTestActivities(models.Model):
     description = models.TextField()
     pts = models.IntegerField(default=0)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="upcoming")
-    start_time = models.DateTimeField()
-    end_time = models.DateTimeField()
+    start_time = models.DateTimeField(blank=True, null=True)
+    end_time = models.DateTimeField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
 class ClassroomCalendarEvents(models.Model):
