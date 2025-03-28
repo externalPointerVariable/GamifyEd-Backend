@@ -7,8 +7,8 @@ from rest_framework.views import APIView
 from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth.tokens import default_token_generator
 from teacher.models import Classrooms
-from .serializers import RegisterSerializer, LoginSerializer, JoinedClassroomSerializer, StudentAIPodcastSerializer, PasswordResetSerializer, PasswordResetConfirmSerializer, DailyMissionsSerializer, XPBreakdownSerializer, StudentCalendarEventSerializer, LevelHistorySerializer, LevelMilestonesSerializer
-from .models import JoinedClassrooms, StudentAIPodcast, DailyMissions, StudentProfile, XPBreakdown, StudentCalendarEvent, LevelHistory, LevelMilestones
+from .serializers import RegisterSerializer, LoginSerializer, JoinedClassroomSerializer, StudentAIPodcastSerializer, PasswordResetSerializer, PasswordResetConfirmSerializer, DailyMissionsSerializer, XPBreakdownSerializer, StudentCalendarEventSerializer, LevelHistorySerializer, LevelMilestonesSerializer, LevelRewardsSerializer
+from .models import JoinedClassrooms, StudentAIPodcast, DailyMissions, StudentProfile, XPBreakdown, StudentCalendarEvent, LevelHistory, LevelMilestones, LevelRewards
 
 class RegisterView(CreateAPIView):
     queryset = User.objects.all()
@@ -371,3 +371,51 @@ class LevelMilestonesView(APIView):
             return Response({"message": "Milestone deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
         except LevelMilestones.DoesNotExist:
             return Response({"error": "Milestone not found"}, status=status.HTTP_404_NOT_FOUND)
+
+class LevelRewardsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk=None, level=None):
+        if level:
+            rewards = LevelRewards.objects.filter(level=level)
+            serializer = LevelRewardsSerializer(rewards, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        if pk:
+            try:
+                reward = LevelRewards.objects.get(pk=pk)
+                serializer = LevelRewardsSerializer(reward)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            except LevelRewards.DoesNotExist:
+                return Response({"error": "Reward not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        rewards = LevelRewards.objects.all()
+        serializer = LevelRewardsSerializer(rewards, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = LevelRewardsSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request, pk):
+        try:
+            reward = LevelRewards.objects.get(pk=pk)
+        except LevelRewards.DoesNotExist:
+            return Response({"error": "Reward not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = LevelRewardsSerializer(reward, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        try:
+            reward = LevelRewards.objects.get(pk=pk)
+            reward.delete()
+            return Response({"message": "Reward deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+        except LevelRewards.DoesNotExist:
+            return Response({"error": "Reward not found"}, status=status.HTTP_404_NOT_FOUND)

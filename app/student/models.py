@@ -91,3 +91,8 @@ class LevelMilestones(models.Model):
     description = models.TextField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="coming_soon")
     unlocked_date = models.DateTimeField(null=True, blank=True)
+
+class LevelRewards(models.Model):
+    level = models.IntegerField()
+    rewards = models.TextField()
+    points = models.PositiveIntegerField()
