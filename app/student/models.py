@@ -71,3 +71,9 @@ class StudentCalendarEvent(models.Model):
     description = models.TextField()
     event_date = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
+
+class LevelHistory(models.Model):
+    student = models.ForeignKey(StudentProfile, on_delete=models.CASCADE, related_name="level_history")
+    level_reached = models.IntegerField()
+    level_achievement = models.CharField(max_length=255)
+    completion_date = models.DateTimeField(auto_now_add=True)

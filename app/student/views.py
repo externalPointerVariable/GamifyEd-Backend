@@ -7,8 +7,8 @@ from rest_framework.views import APIView
 from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth.tokens import default_token_generator
 from teacher.models import Classrooms
-from .serializers import RegisterSerializer, LoginSerializer, JoinedClassroomSerializer, StudentAIPodcastSerializer, PasswordResetSerializer, PasswordResetConfirmSerializer, DailyMissionsSerializer, XPBreakdownSerializer, StudentCalendarEventSerializer
-from .models import JoinedClassrooms, StudentAIPodcast, DailyMissions, StudentProfile, XPBreakdown, StudentCalendarEvent
+from .serializers import RegisterSerializer, LoginSerializer, JoinedClassroomSerializer, StudentAIPodcastSerializer, PasswordResetSerializer, PasswordResetConfirmSerializer, DailyMissionsSerializer, XPBreakdownSerializer, StudentCalendarEventSerializer, LevelHistorySerializer
+from .models import JoinedClassrooms, StudentAIPodcast, DailyMissions, StudentProfile, XPBreakdown, StudentCalendarEvent, LevelHistory
 
 class RegisterView(CreateAPIView):
     queryset = User.objects.all()
@@ -275,3 +275,51 @@ class StudentCalendarEventView(APIView):
             return Response({"message": "Event deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
         except StudentCalendarEvent.DoesNotExist:
             return Response({"error": "Event not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+class LevelHistoryView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk=None, student_id=None):
+        if student_id:
+            levels = LevelHistory.objects.filter(student_id=student_id)
+            serializer = LevelHistorySerializer(levels, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        if pk:
+            try:
+                level = LevelHistory.objects.get(pk=pk)
+                serializer = LevelHistorySerializer(level)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            except LevelHistory.DoesNotExist:
+                return Response({"error": "Level history not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        levels = LevelHistory.objects.all()
+        serializer = LevelHistorySerializer(levels, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = LevelHistorySerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request, pk):
+        try:
+            level = LevelHistory.objects.get(pk=pk)
+        except LevelHistory.DoesNotExist:
+            return Response({"error": "Level history not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = LevelHistorySerializer(level, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        try:
+            level = LevelHistory.objects.get(pk=pk)
+            level.delete()
+            return Response({"message": "Level history deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+        except LevelHistory.DoesNotExist:
+            return Response({"error": "Level history not found"}, status=status.HTTP_404_NOT_FOUND)
