@@ -95,3 +95,17 @@ class LevelRewards(models.Model):
     level = models.IntegerField()
     rewards = models.TextField()
     points = models.PositiveIntegerField()
+
+class AchievementsManagement(models.Model):
+    STATUS_CHOICES = [
+        ('unlocked', 'Unlocked'),
+        ('in_progress', 'In Progress'),
+        ('locked', 'Locked'),
+    ]
+
+    student = models.ForeignKey(StudentProfile, on_delete=models.CASCADE, related_name="achievements")
+    title = models.CharField(max_length=255)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='locked')
+    description = models.TextField()
+    points = models.PositiveIntegerField(default=0)
+    progress_percent = models.FloatField(default=0.0)
