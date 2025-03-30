@@ -1,7 +1,7 @@
 from django.urls import path
 from django.http import JsonResponse
-from student.views import RegisterView, LoginView, JoinedClassroomView, StudentAIPodcastView, PasswordResetView, PasswordResetConfirmView, DailyMissionsView, XPBreakdownView, StudentCalendarEventView, LevelHistoryView, LevelMilestonesView
-from teacher.views import UserProfileView, ClassroomsManagerView, ClassroomAnnouncementView, ClassroomSharedMaterialView, ClassroomTestActivitiesView, ClassroomCalendarEventsView, TeacherRecentActivitiesView, TeacherAIPodcastManagerView
+from student.views import RegisterView, LoginView, StudentLoginStreakView, JoinedClassroomView, StudentAIPodcastView, PasswordResetView, PasswordResetConfirmView, DailyMissionsView, XPBreakdownView, StudentCalendarEventView, LevelHistoryView, LevelMilestonesView, AchievementsManagementView
+from teacher.views import UserProfileView, ClassroomsManagerView, ClassroomAnnouncementView, ClassroomSharedMaterialView, ClassroomTestActivitiesView, ClassroomCalendarEventsView, TeacherRecentActivitiesView, TeacherAIPodcastManagerView, ClassTestStoreView
 
 def welcomeAPI(request):
     return JsonResponse({"message":"Welcome to the API page of GamifyEd backend server", "status":"success"})
@@ -33,6 +33,9 @@ urlpatterns = [
     path("classroom/<int:classroom_id>/podcasts/", TeacherAIPodcastManagerView.as_view(), name="classroom_podcasts"),  # List podcasts for a classroom
     path("classroom/podcast/upload/", TeacherAIPodcastManagerView.as_view(), name="upload_podcast"),  # Upload a new podcast (Teacher only)
     path("classroom/podcast/delete/<int:pk>/", TeacherAIPodcastManagerView.as_view(), name="delete_podcast"),  # Delete a podcast
+    path("class-test-store/", ClassTestStoreView.as_view(), name="class_test_store"),
+    path("class-test-store/<int:pk>/", ClassTestStoreView.as_view(), name="class_test_store_detail"),
+    path("class-test-store/test/<int:test_id>/", ClassTestStoreView.as_view(), name="class_test_store_by_test"),
     
     # Classroom Endpoints (Student)
     path("classroom/student/", JoinedClassroomView.as_view(), name="joined_classrooms"),  # List joined classrooms
@@ -55,4 +58,8 @@ urlpatterns = [
     path("level-milestones/", LevelMilestonesView.as_view(), name="level_milestones"),
     path("level-milestones/<int:pk>/", LevelMilestonesView.as_view(), name="level_milestone_detail"),
     path("level-milestones/student/<int:student_id>/", LevelMilestonesView.as_view(), name="level_milestones_by_student"),
+    path("achievements/", AchievementsManagementView.as_view(), name="achievements_list"),
+    path("achievements/<int:pk>/", AchievementsManagementView.as_view(), name="achievement_detail"),
+    path("achievements/student/<int:student_id>/", AchievementsManagementView.as_view(), name="achievements_by_student"),
+    path("streaks/<int:student_id>/", StudentLoginStreakView.as_view(), name="student_streak"),
 ]

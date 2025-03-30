@@ -3,8 +3,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from student.serializers import StudentProfileSerializer
-from .serializers import TeacherProfileSerializer, ClassroomsManagerSerializer, ClassroomAnnouncementSerializer, ClassroomSharedMaterialSerializer, ClassroomTestActivitiesSerializer, ClassroomCalendarEventsSerializer, TeacherRecentActivitiesSerializer, TeacherAIPodcastManagerSerializer
-from .models import Classrooms, ClassroomAnnouncements, ClassroomSharedMaterials, ClassroomsTestActivities, ClassroomCalendarEvents,TeacherRecentActivities,TeacherAIPodcastManager
+from .serializers import TeacherProfileSerializer, ClassroomsManagerSerializer, ClassroomAnnouncementSerializer, ClassroomSharedMaterialSerializer, ClassroomTestActivitiesSerializer, ClassroomCalendarEventsSerializer, TeacherRecentActivitiesSerializer, TeacherAIPodcastManagerSerializer, ClassTestStoreSerializer
+from .models import Classrooms, ClassroomAnnouncements, ClassroomSharedMaterials, ClassroomsTestActivities, ClassroomCalendarEvents,TeacherRecentActivities,TeacherAIPodcastManager, ClassTestStore
 
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
@@ -367,3 +367,51 @@ class TeacherAIPodcastManagerView(APIView):
             return Response({"message": "Podcast deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
         except TeacherAIPodcastManager.DoesNotExist:
             return Response({"error": "Podcast not found"}, status=status.HTTP_404_NOT_FOUND)
+
+class ClassTestStoreView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk=None, test_id=None):
+        if test_id:
+            questions = ClassTestStore.objects.filter(test_id=test_id)
+            serializer = ClassTestStoreSerializer(questions, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        if pk:
+            try:
+                question = ClassTestStore.objects.get(pk=pk)
+                serializer = ClassTestStoreSerializer(question)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            except ClassTestStore.DoesNotExist:
+                return Response({"error": "Question not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        questions = ClassTestStore.objects.all()
+        serializer = ClassTestStoreSerializer(questions, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = ClassTestStoreSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request, pk):
+        try:
+            question = ClassTestStore.objects.get(pk=pk)
+        except ClassTestStore.DoesNotExist:
+            return Response({"error": "Question not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = ClassTestStoreSerializer(question, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        try:
+            question = ClassTestStore.objects.get(pk=pk)
+            question.delete()
+            return Response({"message": "Question deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+        except ClassTestStore.DoesNotExist:
+            return Response({"error": "Question not found"}, status=status.HTTP_404_NOT_FOUND)
