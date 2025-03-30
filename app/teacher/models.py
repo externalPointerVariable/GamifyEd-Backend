@@ -87,3 +87,9 @@ class TeacherAIPodcastManager(models.Model):
     audio_url = models.URLField(max_length=500)  # URL for the podcast audio
     created_by = models.ForeignKey(TeacherProfile, on_delete=models.CASCADE, related_name="podcasts")
     created_at = models.DateTimeField(auto_now_add=True)
+
+class ClassTestStore(models.Model):
+    test = models.ForeignKey(ClassroomsTestActivities, on_delete=models.CASCADE, related_name="test_store")
+    question = models.TextField()
+    options = models.JSONField()  
+    answer = models.CharField(max_length=255)

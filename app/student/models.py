@@ -58,8 +58,7 @@ class XPBreakdown(models.Model):
     quizes_completed = models.IntegerField(default=0)
     achievements_earned = models.IntegerField(default=0)
     daily_logins = models.IntegerField(default=0)
-    total_xp = models.IntegerField(default=0)  # Computed field (sum of all XP sources)
-
+    total_xp = models.IntegerField(default=0) 
     def calculate_total_xp(self):
         """Recalculate total XP based on completed activities."""
         self.total_xp = (self.quizes_completed * 10) + (self.achievements_earned * 20) + (self.daily_logins * 5)
