@@ -3,7 +3,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from django.contrib.auth.models import User
-from .models import UserProfile, StudentProfile, JoinedClassrooms, StudentAIPodcast, DailyMissions, XPBreakdown, StudentCalendarEvent, LevelHistory, LevelMilestones, LevelRewards, AchievementsManagement
+from .models import UserProfile, StudentProfile, StudentLoginStreak, JoinedClassrooms, StudentAIPodcast, DailyMissions, XPBreakdown, StudentCalendarEvent, LevelHistory, LevelMilestones, LevelRewards, AchievementsManagement
 from teacher.models import TeacherProfile, Classrooms
 from rest_framework_simplejwt.tokens import RefreshToken
 from teacher.serializers import UserProfileSerializer
@@ -184,3 +184,9 @@ class AchievementsManagementSerializer(serializers.ModelSerializer):
         model = AchievementsManagement
         fields = '__all__'
         read_only_fields = ['id']
+
+class StudentLoginStreakSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StudentLoginStreak
+        fields = '__all__'
+        read_only_fields = ['id', 'longest_streak', 'last_login_date']

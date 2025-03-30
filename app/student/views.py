@@ -7,8 +7,8 @@ from rest_framework.views import APIView
 from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth.tokens import default_token_generator
 from teacher.models import Classrooms
-from .serializers import RegisterSerializer, LoginSerializer, JoinedClassroomSerializer, StudentAIPodcastSerializer, PasswordResetSerializer, PasswordResetConfirmSerializer, DailyMissionsSerializer, XPBreakdownSerializer, StudentCalendarEventSerializer, LevelHistorySerializer, LevelMilestonesSerializer, LevelRewardsSerializer, AchievementsManagementSerializer
-from .models import JoinedClassrooms, StudentAIPodcast, DailyMissions, StudentProfile, XPBreakdown, StudentCalendarEvent, LevelHistory, LevelMilestones, LevelRewards, AchievementsManagement
+from .serializers import RegisterSerializer, StudentLoginStreakSerializer, LoginSerializer, JoinedClassroomSerializer, StudentAIPodcastSerializer, PasswordResetSerializer, PasswordResetConfirmSerializer, DailyMissionsSerializer, XPBreakdownSerializer, StudentCalendarEventSerializer, LevelHistorySerializer, LevelMilestonesSerializer, LevelRewardsSerializer, AchievementsManagementSerializer
+from .models import JoinedClassrooms, StudentLoginStreak, StudentAIPodcast, DailyMissions, StudentProfile, XPBreakdown, StudentCalendarEvent, LevelHistory, LevelMilestones, LevelRewards, AchievementsManagement
 
 class RegisterView(CreateAPIView):
     queryset = User.objects.all()
@@ -467,3 +467,21 @@ class AchievementsManagementView(APIView):
             return Response({"message": "Achievement deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
         except AchievementsManagement.DoesNotExist:
             return Response({"error": "Achievement not found"}, status=status.HTTP_404_NOT_FOUND)
+
+class StudentLoginStreakView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, student_id=None):
+        try:
+            streak = StudentLoginStreak.objects.get(student_id=student_id)
+            serializer = StudentLoginStreakSerializer(streak)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except StudentLoginStreak.DoesNotExist:
+            return Response({"error": "Student login streak not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    def post(self, request):
+        student = request.user.student_profile
+        streak, created = StudentLoginStreak.objects.get_or_create(student=student)
+        streak.update_streak()
+        serializer = StudentLoginStreakSerializer(streak)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)

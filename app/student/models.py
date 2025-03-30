@@ -109,3 +109,20 @@ class AchievementsManagement(models.Model):
     description = models.TextField()
     points = models.PositiveIntegerField(default=0)
     progress_percent = models.FloatField(default=0.0)
+
+class StudentLoginStreak(models.Model):
+    student = models.OneToOneField(StudentProfile, on_delete=models.CASCADE, related_name="login_streak")
+    current_streak = models.PositiveIntegerField(default=0)
+    longest_streak = models.PositiveIntegerField(default=0)
+    last_login_date = models.DateField(null=True, blank=True)
+
+    def update_streak(self):
+        today = timezone.now().date()
+        if self.last_login_date is None or (today - self.last_login_date).days > 1:
+            self.current_streak = 1  # Reset streak if missed a day
+        elif (today - self.last_login_date).days == 1:
+            self.current_streak += 1  # Increase streak if logged in consecutive days
+
+        self.longest_streak = max(self.longest_streak, self.current_streak)
+        self.last_login_date = today
+        self.save()
