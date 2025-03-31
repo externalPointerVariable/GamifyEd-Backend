@@ -1,13 +1,20 @@
-from django.urls import path
+from django.urls import path, get_resolver
 from django.http import JsonResponse
 from student.views import RegisterView, LoginView, StudentTestHistoryView, StudentLoginStreakView, JoinedClassroomView, StudentAIPodcastView, PasswordResetView, PasswordResetConfirmView, DailyMissionsView, XPBreakdownView, StudentCalendarEventView, LevelHistoryView, LevelMilestonesView, AchievementsManagementView
 from teacher.views import UserProfileView, ClassroomsManagerView, ClassroomAnnouncementView, ClassroomSharedMaterialView, ClassroomTestActivitiesView, ClassroomCalendarEventsView, TeacherRecentActivitiesView, TeacherAIPodcastManagerView, ClassTestStoreView
+from rest_framework.response import Response
+from rest_framework.decorators import api_view
 
+@api_view(["GET"])
 def welcomeAPI(request):
-    return JsonResponse({"message":"Welcome to the API page of GamifyEd backend server", "status":"success"})
+    urls = []
+    for pattern in get_resolver().url_patterns:
+        urls.append(str(pattern.pattern))
+
+    return Response({"available_endpoints": urls})
 
 urlpatterns = [
-    path("", welcomeAPI),
+    path("", welcomeAPI, name="api_list"),
 
     # Auth Endpoints
     path("register/", RegisterView.as_view(), name="register"),
