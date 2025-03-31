@@ -1,5 +1,5 @@
 from django.urls import path, get_resolver
-from student.views import RegisterView, LoginView, StudentTestHistoryView, StudentLoginStreakView, JoinedClassroomView, StudentAIPodcastView, PasswordResetView, PasswordResetConfirmView, DailyMissionsView, XPBreakdownView, StudentCalendarEventView, LevelHistoryView, LevelMilestonesView, AchievementsManagementView
+from student.views import RegisterView, LoginView, StudentProfileView, StudentTestHistoryView, StudentLoginStreakView, JoinedClassroomView, StudentAIPodcastView, PasswordResetView, PasswordResetConfirmView, DailyMissionsView, XPBreakdownView, StudentCalendarEventView, LevelHistoryView, LevelMilestonesView, AchievementsManagementView
 from teacher.views import UserProfileView, ClassroomsManagerView, ClassroomAnnouncementView, ClassroomSharedMaterialView, ClassroomTestActivitiesView, ClassroomCalendarEventsView, TeacherRecentActivitiesView, TeacherAIPodcastManagerView, ClassTestStoreView
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
@@ -53,6 +53,7 @@ urlpatterns = [
     path("class-test-store/test/<int:test_id>/", ClassTestStoreView.as_view(), name="class_test_store_by_test"),
     
     # Classroom Endpoints (Student)
+    path("student/profile/", StudentProfileView.as_view(), name="student_profile"),
     path("classroom/student/", JoinedClassroomView.as_view(), name="joined_classrooms"),  # List joined classrooms
     path("classroom/student/join/", JoinedClassroomView.as_view(), name="join_classroom"),  # Join classroom
     path("classroom/student/leave/<int:pk>/", JoinedClassroomView.as_view(), name="leave_classroom"),  # Leave classroom
