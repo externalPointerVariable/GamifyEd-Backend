@@ -1,6 +1,6 @@
 from django.urls import path
 from django.http import JsonResponse
-from student.views import RegisterView, LoginView, StudentLoginStreakView, JoinedClassroomView, StudentAIPodcastView, PasswordResetView, PasswordResetConfirmView, DailyMissionsView, XPBreakdownView, StudentCalendarEventView, LevelHistoryView, LevelMilestonesView, AchievementsManagementView
+from student.views import RegisterView, LoginView, StudentTestHistoryView, StudentLoginStreakView, JoinedClassroomView, StudentAIPodcastView, PasswordResetView, PasswordResetConfirmView, DailyMissionsView, XPBreakdownView, StudentCalendarEventView, LevelHistoryView, LevelMilestonesView, AchievementsManagementView
 from teacher.views import UserProfileView, ClassroomsManagerView, ClassroomAnnouncementView, ClassroomSharedMaterialView, ClassroomTestActivitiesView, ClassroomCalendarEventsView, TeacherRecentActivitiesView, TeacherAIPodcastManagerView, ClassTestStoreView
 
 def welcomeAPI(request):
@@ -62,4 +62,7 @@ urlpatterns = [
     path("achievements/<int:pk>/", AchievementsManagementView.as_view(), name="achievement_detail"),
     path("achievements/student/<int:student_id>/", AchievementsManagementView.as_view(), name="achievements_by_student"),
     path("streaks/<int:student_id>/", StudentLoginStreakView.as_view(), name="student_streak"),
+    path("student/test-history/", StudentTestHistoryView.as_view(), name="student_test_history"),  # Get all histories
+    path("student/test-history/<int:pk>/", StudentTestHistoryView.as_view(), name="test_history_details"),  # Single test history
+    path("student/test-history/student/<int:student_id>/", StudentTestHistoryView.as_view(), name="student_test_history_list"),  # Filter by student
 ]

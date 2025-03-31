@@ -7,8 +7,8 @@ from rest_framework.views import APIView
 from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth.tokens import default_token_generator
 from teacher.models import Classrooms
-from .serializers import RegisterSerializer, StudentLoginStreakSerializer, LoginSerializer, JoinedClassroomSerializer, StudentAIPodcastSerializer, PasswordResetSerializer, PasswordResetConfirmSerializer, DailyMissionsSerializer, XPBreakdownSerializer, StudentCalendarEventSerializer, LevelHistorySerializer, LevelMilestonesSerializer, LevelRewardsSerializer, AchievementsManagementSerializer
-from .models import JoinedClassrooms, StudentLoginStreak, StudentAIPodcast, DailyMissions, StudentProfile, XPBreakdown, StudentCalendarEvent, LevelHistory, LevelMilestones, LevelRewards, AchievementsManagement
+from .serializers import RegisterSerializer, StudentLoginStreakSerializer, LoginSerializer, JoinedClassroomSerializer, StudentAIPodcastSerializer, PasswordResetSerializer, PasswordResetConfirmSerializer, DailyMissionsSerializer, XPBreakdownSerializer, StudentCalendarEventSerializer, LevelHistorySerializer, LevelMilestonesSerializer, LevelRewardsSerializer, AchievementsManagementSerializer, StudentTestHistorySerializer
+from .models import JoinedClassrooms, StudentLoginStreak, StudentAIPodcast, DailyMissions, StudentProfile, XPBreakdown, StudentCalendarEvent, LevelHistory, LevelMilestones, LevelRewards, AchievementsManagement, StudentTestHistory
 
 class RegisterView(CreateAPIView):
     queryset = User.objects.all()
@@ -485,3 +485,51 @@ class StudentLoginStreakView(APIView):
         streak.update_streak()
         serializer = StudentLoginStreakSerializer(streak)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+class StudentTestHistoryView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk=None, student_id=None):
+        if student_id:
+            histories = StudentTestHistory.objects.filter(student_id=student_id)
+            serializer = StudentTestHistorySerializer(histories, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        if pk:
+            try:
+                history = StudentTestHistory.objects.get(pk=pk)
+                serializer = StudentTestHistorySerializer(history)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            except StudentTestHistory.DoesNotExist:
+                return Response({"error": "Test history not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        histories = StudentTestHistory.objects.all()
+        serializer = StudentTestHistorySerializer(histories, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = StudentTestHistorySerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request, pk):
+        try:
+            history = StudentTestHistory.objects.get(pk=pk)
+        except StudentTestHistory.DoesNotExist:
+            return Response({"error": "Test history not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = StudentTestHistorySerializer(history, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        try:
+            history = StudentTestHistory.objects.get(pk=pk)
+            history.delete()
+            return Response({"message": "Test history deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+        except StudentTestHistory.DoesNotExist:
+            return Response({"error": "Test history not found"}, status=status.HTTP_404_NOT_FOUND)

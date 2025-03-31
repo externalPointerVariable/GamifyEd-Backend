@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from teacher.models import Classrooms
+from django.utils import timezone
 
 user = get_user_model()
 
@@ -126,3 +127,16 @@ class StudentLoginStreak(models.Model):
         self.longest_streak = max(self.longest_streak, self.current_streak)
         self.last_login_date = today
         self.save()
+
+class StudentTestHistory(models.Model):
+    TEST_TYPE_CHOICES = [
+        ("practice", "Practice"),
+        ("test", "Test"),
+    ]
+
+    student = models.ForeignKey(StudentProfile, on_delete=models.CASCADE, related_name="test_history")
+    title = models.CharField(max_length=255)
+    test_type = models.CharField(max_length=10, choices=TEST_TYPE_CHOICES)
+    obtained_marks = models.FloatField()
+    total_marks = models.FloatField()
+    created_at = models.DateTimeField(auto_now_add=True)
