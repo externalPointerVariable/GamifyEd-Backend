@@ -25,6 +25,7 @@ class StudentProfile(models.Model):
     lastName = models.CharField(max_length=255, default="")
     email = models.EmailField(unique=True)
     institute = models.CharField(max_length=255, default="")
+    qualification = models.CharField(max_length=255, blank=True, null=True)
     experience_points = models.PositiveIntegerField(default=0)
     level = models.IntegerField(default=1)
 
