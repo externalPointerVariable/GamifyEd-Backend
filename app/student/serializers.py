@@ -3,7 +3,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from django.contrib.auth.models import User
-from .models import UserProfile, StudentProfile, StudentLoginStreak, JoinedClassrooms, StudentAIPodcast, DailyMissions, XPBreakdown, StudentCalendarEvent, LevelHistory, LevelMilestones, LevelRewards, AchievementsManagement
+from .models import UserProfile, StudentProfile, StudentLoginStreak, JoinedClassrooms, StudentAIPodcast, DailyMissions, XPBreakdown, StudentCalendarEvent, LevelHistory, LevelMilestones, LevelRewards, AchievementsManagement, StudentTestHistory
 from teacher.models import TeacherProfile, Classrooms
 from rest_framework_simplejwt.tokens import RefreshToken
 from teacher.serializers import UserProfileSerializer
@@ -100,13 +100,17 @@ class StudentProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = StudentProfile
-        fields = ['user', 'avatar', 'firstName', 'lastName',  'email', 'institute', 'experience_points', 'level']
+        fields = [
+            'user', 'avatar', 'firstName', 'lastName', 'email', 
+            'institute', 'qualification', 'experience_points', 'level'
+        ]
 
     def update(self, instance, validated_data):
         instance.avatar = validated_data.get('avatar', instance.avatar)
         instance.firstName = validated_data.get('firstName', instance.firstName)
         instance.lastName = validated_data.get('lastName', instance.lastName)
         instance.institute = validated_data.get('institute', instance.institute)
+        instance.qualification = validated_data.get('qualification', instance.qualification)  # Added qualification
         instance.experience_points = validated_data.get('experience_points', instance.experience_points)
         instance.level = validated_data.get('level', instance.level)
         instance.save()
@@ -190,3 +194,9 @@ class StudentLoginStreakSerializer(serializers.ModelSerializer):
         model = StudentLoginStreak
         fields = '__all__'
         read_only_fields = ['id', 'longest_streak', 'last_login_date']
+
+class StudentTestHistorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StudentTestHistory
+        fields = '__all__'
+        read_only_fields = ['id', 'created_at']

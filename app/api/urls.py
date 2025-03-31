@@ -1,13 +1,28 @@
-from django.urls import path
-from django.http import JsonResponse
-from student.views import RegisterView, LoginView, StudentLoginStreakView, JoinedClassroomView, StudentAIPodcastView, PasswordResetView, PasswordResetConfirmView, DailyMissionsView, XPBreakdownView, StudentCalendarEventView, LevelHistoryView, LevelMilestonesView, AchievementsManagementView
+from django.urls import path, get_resolver
+from student.views import RegisterView, LoginView, StudentProfileView, StudentTestHistoryView, StudentLoginStreakView, JoinedClassroomView, StudentAIPodcastView, PasswordResetView, PasswordResetConfirmView, DailyMissionsView, XPBreakdownView, StudentCalendarEventView, LevelHistoryView, LevelMilestonesView, AchievementsManagementView
 from teacher.views import UserProfileView, ClassroomsManagerView, ClassroomAnnouncementView, ClassroomSharedMaterialView, ClassroomTestActivitiesView, ClassroomCalendarEventsView, TeacherRecentActivitiesView, TeacherAIPodcastManagerView, ClassTestStoreView
+from rest_framework.response import Response
+from rest_framework.decorators import api_view
 
+@api_view(["GET"])
 def welcomeAPI(request):
-    return JsonResponse({"message":"Welcome to the API page of GamifyEd backend server", "status":"success"})
+    resolver = get_resolver()
+    url_patterns = resolver.url_patterns
+    endpoints = []
+
+    def extract_patterns(patterns, prefix=""):
+        for pattern in patterns:
+            if hasattr(pattern, "pattern"):
+                endpoints.append(prefix + str(pattern.pattern))
+            if hasattr(pattern, "url_patterns"):  # For included URLs
+                extract_patterns(pattern.url_patterns, prefix + str(pattern.pattern))
+
+    extract_patterns(url_patterns)
+
+    return Response({"available_endpoints": endpoints})
 
 urlpatterns = [
-    path("", welcomeAPI),
+    path("", welcomeAPI, name="api_list"),
 
     # Auth Endpoints
     path("register/", RegisterView.as_view(), name="register"),
@@ -38,6 +53,7 @@ urlpatterns = [
     path("class-test-store/test/<int:test_id>/", ClassTestStoreView.as_view(), name="class_test_store_by_test"),
     
     # Classroom Endpoints (Student)
+    path("student/profile/", StudentProfileView.as_view(), name="student_profile"),
     path("classroom/student/", JoinedClassroomView.as_view(), name="joined_classrooms"),  # List joined classrooms
     path("classroom/student/join/", JoinedClassroomView.as_view(), name="join_classroom"),  # Join classroom
     path("classroom/student/leave/<int:pk>/", JoinedClassroomView.as_view(), name="leave_classroom"),  # Leave classroom
@@ -62,4 +78,7 @@ urlpatterns = [
     path("achievements/<int:pk>/", AchievementsManagementView.as_view(), name="achievement_detail"),
     path("achievements/student/<int:student_id>/", AchievementsManagementView.as_view(), name="achievements_by_student"),
     path("streaks/<int:student_id>/", StudentLoginStreakView.as_view(), name="student_streak"),
+    path("student/test-history/", StudentTestHistoryView.as_view(), name="student_test_history"),  # Get all histories
+    path("student/test-history/<int:pk>/", StudentTestHistoryView.as_view(), name="test_history_details"),  # Single test history
+    path("student/test-history/student/<int:student_id>/", StudentTestHistoryView.as_view(), name="student_test_history_list"),  # Filter by student
 ]

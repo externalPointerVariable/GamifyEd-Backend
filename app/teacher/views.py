@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from student.serializers import StudentProfileSerializer
 from .serializers import TeacherProfileSerializer, ClassroomsManagerSerializer, ClassroomAnnouncementSerializer, ClassroomSharedMaterialSerializer, ClassroomTestActivitiesSerializer, ClassroomCalendarEventsSerializer, TeacherRecentActivitiesSerializer, TeacherAIPodcastManagerSerializer, ClassTestStoreSerializer
-from .models import Classrooms, ClassroomAnnouncements, ClassroomSharedMaterials, ClassroomsTestActivities, ClassroomCalendarEvents,TeacherRecentActivities,TeacherAIPodcastManager, ClassTestStore
+from .models import Classrooms, ClassroomAnnouncements, TeacherProfile, ClassroomSharedMaterials, ClassroomsTestActivities, ClassroomCalendarEvents,TeacherRecentActivities,TeacherAIPodcastManager, ClassTestStore
 
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
@@ -39,6 +39,28 @@ class UserProfileView(APIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+class TeacherProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            teacher_profile = request.user.teacher_profile
+            serializer = TeacherProfileSerializer(teacher_profile)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except TeacherProfile.DoesNotExist:
+            return Response({"error": "Teacher profile not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    def patch(self, request):
+        try:
+            teacher_profile = request.user.teacher_profile
+        except TeacherProfile.DoesNotExist:
+            return Response({"error": "Teacher profile not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = TeacherProfileSerializer(teacher_profile, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ClassroomsManagerView(APIView):
     permission_classes = [IsAuthenticated]
