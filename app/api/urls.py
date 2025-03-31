@@ -1,5 +1,4 @@
 from django.urls import path, get_resolver
-from django.http import JsonResponse
 from student.views import RegisterView, LoginView, StudentTestHistoryView, StudentLoginStreakView, JoinedClassroomView, StudentAIPodcastView, PasswordResetView, PasswordResetConfirmView, DailyMissionsView, XPBreakdownView, StudentCalendarEventView, LevelHistoryView, LevelMilestonesView, AchievementsManagementView
 from teacher.views import UserProfileView, ClassroomsManagerView, ClassroomAnnouncementView, ClassroomSharedMaterialView, ClassroomTestActivitiesView, ClassroomCalendarEventsView, TeacherRecentActivitiesView, TeacherAIPodcastManagerView, ClassTestStoreView
 from rest_framework.response import Response
@@ -7,11 +6,20 @@ from rest_framework.decorators import api_view
 
 @api_view(["GET"])
 def welcomeAPI(request):
-    urls = []
-    for pattern in get_resolver().url_patterns:
-        urls.append(str(pattern.pattern))
+    resolver = get_resolver()
+    url_patterns = resolver.url_patterns
+    endpoints = []
 
-    return Response({"available_endpoints": urls})
+    def extract_patterns(patterns, prefix=""):
+        for pattern in patterns:
+            if hasattr(pattern, "pattern"):
+                endpoints.append(prefix + str(pattern.pattern))
+            if hasattr(pattern, "url_patterns"):  # For included URLs
+                extract_patterns(pattern.url_patterns, prefix + str(pattern.pattern))
+
+    extract_patterns(url_patterns)
+
+    return Response({"available_endpoints": endpoints})
 
 urlpatterns = [
     path("", welcomeAPI, name="api_list"),
