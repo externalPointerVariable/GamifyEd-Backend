@@ -524,9 +524,9 @@ class StudentLoginStreakView(APIView):
 class StudentTestHistoryView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, pk=None, student_id=None):
-        if student_id:
-            histories = StudentTestHistory.objects.filter(student_id=student_id)
+    def get(self, request, pk=None, student_username=None):
+        if student_username:
+            histories = StudentTestHistory.objects.filter(student__user__username=student_username)
             serializer = StudentTestHistorySerializer(histories, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -543,9 +543,12 @@ class StudentTestHistoryView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
-        serializer = StudentTestHistorySerializer(data=request.data)
+        student_profile = getattr(request.user, 'student_profile', None)
+        if not student_profile:
+            return Response({"error": "Student profile not found"}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = StudentTestHistorySerializer(data=request.data)   
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(student=student_profile)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

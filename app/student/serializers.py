@@ -218,5 +218,5 @@ class StudentLoginStreakSerializer(serializers.ModelSerializer):
 class StudentTestHistorySerializer(serializers.ModelSerializer):
     class Meta:
         model = StudentTestHistory
-        fields = '__all__'
+        exclude = ['student']
         read_only_fields = ['id', 'created_at']
