@@ -194,7 +194,7 @@ class LevelHistorySerializer(serializers.ModelSerializer):
 class LevelMilestonesSerializer(serializers.ModelSerializer):
     class Meta:
         model = LevelMilestones
-        fields = '__all__'
+        exclude = ['student']
         read_only_fields = ['id', 'unlocked_date']
 
 class LevelRewardsSerializer(serializers.ModelSerializer):

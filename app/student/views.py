@@ -362,9 +362,9 @@ class LevelHistoryView(APIView):
 class LevelMilestonesView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, pk=None, student_id=None):
-        if student_id:
-            milestones = LevelMilestones.objects.filter(student_id=student_id)
+    def get(self, request, pk=None, student_username=None):
+        if student_username:
+            milestones = LevelMilestones.objects.filter(student__user__username=student_username)
             serializer = LevelMilestonesSerializer(milestones, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -381,15 +381,19 @@ class LevelMilestonesView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
+        student_profile = getattr(request.user, 'student_profile', None)
+        if not student_profile:
+            return Response({"error": "Student profile not found"}, status=status.HTTP_400_BAD_REQUEST)
         serializer = LevelMilestonesSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(student=student_profile)  # ✅ Assign student automatically
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
     def patch(self, request, pk):
         try:
-            milestone = LevelMilestones.objects.get(pk=pk)
+            milestone = LevelMilestones.objects.get(id=pk)
         except LevelMilestones.DoesNotExist:
             return Response({"error": "Milestone not found"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -401,7 +405,7 @@ class LevelMilestonesView(APIView):
 
     def delete(self, request, pk):
         try:
-            milestone = LevelMilestones.objects.get(pk=pk)
+            milestone = LevelMilestones.objects.get(id=pk)
             milestone.delete()
             return Response({"message": "Milestone deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
         except LevelMilestones.DoesNotExist:
