@@ -370,7 +370,7 @@ class LevelMilestonesView(APIView):
 
         if pk:
             try:
-                milestone = LevelMilestones.objects.get(pk=pk)
+                milestone = LevelMilestones.objects.get(id=pk)
                 serializer = LevelMilestonesSerializer(milestone)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             except LevelMilestones.DoesNotExist:
