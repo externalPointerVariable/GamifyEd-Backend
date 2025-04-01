@@ -14,14 +14,21 @@ class RegisterView(CreateAPIView):
     queryset = User.objects.all()
     serializer_class = RegisterSerializer
 
+from django.utils import timezone
+from datetime import timedelta
+
 class LoginView(generics.GenericAPIView):
     serializer_class = LoginSerializer
     permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        return Response(serializer.validated_data, status=status.HTTP_200_OK)
+        serializer.is_valid(raise_exception=True)     
+        user = serializer.validated_data.get('user')
+        data = serializer.validated_data
+        return Response(data, status=status.HTTP_200_OK)
+
+
     
 class PasswordResetView(APIView):
     """
@@ -495,9 +502,9 @@ class AchievementsManagementView(APIView):
 class StudentLoginStreakView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, student_id=None):
+    def get(self, request, student_username=None):
         try:
-            streak = StudentLoginStreak.objects.get(student_id=student_id)
+            streak = StudentLoginStreak.objects.get(student__user__username=student_username)
             serializer = StudentLoginStreakSerializer(streak)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except StudentLoginStreak.DoesNotExist:

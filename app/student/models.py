@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from teacher.models import Classrooms
 from django.utils import timezone
+from datetime import timedelta
 
 user = get_user_model()
 
@@ -120,11 +121,12 @@ class StudentLoginStreak(models.Model):
 
     def update_streak(self):
         today = timezone.now().date()
+        if self.last_login_date == today:
+            return  
         if self.last_login_date is None or (today - self.last_login_date).days > 1:
-            self.current_streak = 1  # Reset streak if missed a day
-        elif (today - self.last_login_date).days == 1:
-            self.current_streak += 1  # Increase streak if logged in consecutive days
-
+            self.current_streak = 1 
+        else:
+            self.current_streak += 1 
         self.longest_streak = max(self.longest_streak, self.current_streak)
         self.last_login_date = today
         self.save()
