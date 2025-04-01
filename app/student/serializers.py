@@ -154,8 +154,18 @@ class JoinedClassroomSerializer(serializers.ModelSerializer):
 class StudentAIPodcastSerializer(serializers.ModelSerializer):
     class Meta:
         model = StudentAIPodcast
-        fields = ['id', 'student', 'title', 'description', 'audio', 'points', 'created_at']
-        read_only_fields = ['id', 'student', 'created_at']
+        fields = '__all__'
+        read_only_fields = ['id', 'student']
+
+    def create(self, validated_data):
+        request = self.context.get('request', None)
+        if request and hasattr(request.user, 'student_profile'):
+            validated_data['student'] = request.user.student_profile
+        else:
+            raise serializers.ValidationError({"error": "Student profile not found"})
+
+        return super().create(validated_data)
+
 
 class DailyMissionsSerializer(serializers.ModelSerializer):
     class Meta:
@@ -178,7 +188,7 @@ class StudentCalendarEventSerializer(serializers.ModelSerializer):
 class LevelHistorySerializer(serializers.ModelSerializer):
     class Meta:
         model = LevelHistory
-        exclude = ['student']
+        exclude = ['student']  # ✅ Remove 'student' from required fields
         read_only_fields = ['id', 'completion_date']
 
 class LevelMilestonesSerializer(serializers.ModelSerializer):

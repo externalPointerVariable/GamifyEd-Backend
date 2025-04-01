@@ -14,8 +14,6 @@ class RegisterView(CreateAPIView):
     queryset = User.objects.all()
     serializer_class = RegisterSerializer
 
-from django.utils import timezone
-from datetime import timedelta
 
 class LoginView(generics.GenericAPIView):
     serializer_class = LoginSerializer
@@ -28,8 +26,6 @@ class LoginView(generics.GenericAPIView):
         data = serializer.validated_data
         return Response(data, status=status.HTTP_200_OK)
 
-
-    
 class PasswordResetView(APIView):
     """
     View to handle password reset requests.
@@ -145,9 +141,9 @@ class JoinedClassroomView(APIView):
 class StudentAIPodcastView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, pk=None, student_id=None):
-        if student_id:
-            podcasts = StudentAIPodcast.objects.filter(student_id=student_id)
+    def get(self, request, pk=None, student_username=None):
+        if student_username:
+            podcasts = StudentAIPodcast.objects.filter(student__user__username=student_username)
             serializer = StudentAIPodcastSerializer(podcasts, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -164,14 +160,18 @@ class StudentAIPodcastView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
-        data = request.data.copy()
-        data["student"] = request.user.student_profile.id  # Auto-assign logged-in student
+            if not request.user.is_authenticated:
+                return Response({"error": "User not authenticated"}, status=status.HTTP_401_UNAUTHORIZED)
 
-        serializer = StudentAIPodcastSerializer(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            if not hasattr(request.user, 'student_profile'):
+                return Response({"error": "Student profile not found"}, status=status.HTTP_400_BAD_REQUEST)
+
+            serializer = StudentAIPodcastSerializer(data=request.data, context={'request': request})
+            if serializer.is_valid():
+                serializer.save(student=request.user.student_profile)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def patch(self, request, pk):
         try:
@@ -329,11 +329,15 @@ class LevelHistoryView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
+        student_profile = getattr(request.user, 'student_profile', None)  
+        if not student_profile:
+            return Response({"error": "Student profile not found"}, status=status.HTTP_400_BAD_REQUEST)
         serializer = LevelHistorySerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(student=student_profile)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
     def patch(self, request, pk):
         try:
