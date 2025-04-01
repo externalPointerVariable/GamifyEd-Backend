@@ -318,7 +318,7 @@ class LevelHistoryView(APIView):
 
         if pk:
             try:
-                level = LevelHistory.objects.get(pk=pk)
+                level = LevelHistory.objects.get(id=pk)
                 serializer = LevelHistorySerializer(level)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             except LevelHistory.DoesNotExist:
@@ -341,7 +341,7 @@ class LevelHistoryView(APIView):
 
     def patch(self, request, pk):
         try:
-            level = LevelHistory.objects.get(pk=pk)
+            level = LevelHistory.objects.get(id=pk)
         except LevelHistory.DoesNotExist:
             return Response({"error": "Level history not found"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -353,7 +353,7 @@ class LevelHistoryView(APIView):
 
     def delete(self, request, pk):
         try:
-            level = LevelHistory.objects.get(pk=pk)
+            level = LevelHistory.objects.get(id=pk)
             level.delete()
             return Response({"message": "Level history deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
         except LevelHistory.DoesNotExist:
