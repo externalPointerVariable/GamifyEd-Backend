@@ -7,8 +7,8 @@ from rest_framework.views import APIView
 from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth.tokens import default_token_generator
 from teacher.models import Classrooms
-from .serializers import RegisterSerializer, StudentLoginStreakSerializer, StudentProfileSerializer, LoginSerializer, JoinedClassroomSerializer, StudentAIPodcastSerializer, PasswordResetSerializer, PasswordResetConfirmSerializer, DailyMissionsSerializer, XPBreakdownSerializer, StudentCalendarEventSerializer, LevelHistorySerializer, LevelMilestonesSerializer, LevelRewardsSerializer, AchievementsManagementSerializer, StudentTestHistorySerializer
-from .models import JoinedClassrooms, StudentLoginStreak, StudentAIPodcast, DailyMissions, StudentProfile, XPBreakdown, StudentCalendarEvent, LevelHistory, LevelMilestones, LevelRewards, AchievementsManagement, StudentTestHistory
+from .serializers import RegisterSerializer, StudentLoginStreakSerializer, StudentProfileSerializer, LoginSerializer, JoinedClassroomSerializer, StudentAIPodcastSerializer, PasswordResetSerializer, PasswordResetConfirmSerializer, DailyMissionsSerializer, XPBreakdownSerializer, StudentCalendarEventSerializer, LevelHistorySerializer, LevelMilestonesSerializer, LevelRewardsSerializer, AchievementsManagementSerializer, StudentTestHistorySerializer, StudentRecentActivitiesSerializer
+from .models import JoinedClassrooms, StudentLoginStreak, StudentAIPodcast, DailyMissions, StudentProfile, XPBreakdown, StudentCalendarEvent, LevelHistory, LevelMilestones, LevelRewards, AchievementsManagement, StudentTestHistory, StudentRecentActivities
 
 class RegisterView(CreateAPIView):
     queryset = User.objects.all()
@@ -584,3 +584,32 @@ class StudentTestHistoryView(APIView):
             return Response({"message": "Test history deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
         except StudentTestHistory.DoesNotExist:
             return Response({"error": "Test history not found"}, status=status.HTTP_404_NOT_FOUND)
+
+class StudentRecentActivitiesView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request, pk=None, student_username=None):
+        if student_username:
+            activities = StudentRecentActivities.objects.filter(student__user__username=student_username)
+            serializer = StudentRecentActivitiesSerializer(activities, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        if pk:
+            try:
+                activity = StudentRecentActivities.objects.get(id=pk)
+                serializer = StudentRecentActivitiesSerializer(activity)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            except StudentRecentActivities.DoesNotExist:
+                return Response({"error": "Activity not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        activities = StudentRecentActivities.objects.all()
+        serializer = StudentRecentActivitiesSerializer(activities, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    def post(self, request):
+        student_profile = getattr(request.user, 'student_profile', None)
+        if not student_profile:
+            return Response({"error": "Student profile not found"}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = StudentRecentActivitiesSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(student=student_profile)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

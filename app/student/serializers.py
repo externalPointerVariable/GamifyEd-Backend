@@ -4,7 +4,7 @@ from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
-from .models import UserProfile, StudentProfile, StudentLoginStreak, JoinedClassrooms, StudentAIPodcast, DailyMissions, XPBreakdown, StudentCalendarEvent, LevelHistory, LevelMilestones, LevelRewards, AchievementsManagement, StudentTestHistory
+from .models import UserProfile, StudentProfile, StudentLoginStreak, JoinedClassrooms, StudentAIPodcast, DailyMissions, XPBreakdown, StudentCalendarEvent, LevelHistory, LevelMilestones, LevelRewards, AchievementsManagement, StudentTestHistory, StudentRecentActivities
 from teacher.models import TeacherProfile, Classrooms
 from rest_framework_simplejwt.tokens import RefreshToken
 from teacher.serializers import UserProfileSerializer
@@ -220,3 +220,16 @@ class StudentTestHistorySerializer(serializers.ModelSerializer):
         model = StudentTestHistory
         exclude = ['student']
         read_only_fields = ['id', 'created_at']
+
+class StudentRecentActivitiesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StudentRecentActivities
+        exclude = ['student']
+        read_only_fields = ['id', 'created_at']
+    def create(self, validated_data):
+        request = self.context.get('request', None)
+        if request and hasattr(request.user, 'student_profile'):
+            validated_data['student'] = request.user.student_profile
+        else:
+            raise serializers.ValidationError({"error": "Student profile not found"})
+        return super().create(validated_data)
