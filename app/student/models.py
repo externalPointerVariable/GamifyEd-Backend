@@ -140,3 +140,12 @@ class StudentTestHistory(models.Model):
     obtained_marks = models.FloatField()
     total_marks = models.FloatField()
     created_at = models.DateTimeField(auto_now_add=True)
+
+class StudentRecentActivities(models.Model):
+    student = models.ForeignKey(StudentProfile, on_delete=models.CASCADE, related_name="recent_activities")
+    activity_type = models.CharField(max_length=255)
+    description = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
