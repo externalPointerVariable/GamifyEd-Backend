@@ -14,15 +14,18 @@ class RegisterView(CreateAPIView):
     queryset = User.objects.all()
     serializer_class = RegisterSerializer
 
+
 class LoginView(generics.GenericAPIView):
     serializer_class = LoginSerializer
     permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        return Response(serializer.validated_data, status=status.HTTP_200_OK)
-    
+        serializer.is_valid(raise_exception=True)     
+        user = serializer.validated_data.get('user')
+        data = serializer.validated_data
+        return Response(data, status=status.HTTP_200_OK)
+
 class PasswordResetView(APIView):
     """
     View to handle password reset requests.
@@ -138,9 +141,9 @@ class JoinedClassroomView(APIView):
 class StudentAIPodcastView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, pk=None, student_id=None):
-        if student_id:
-            podcasts = StudentAIPodcast.objects.filter(student_id=student_id)
+    def get(self, request, pk=None, student_username=None):
+        if student_username:
+            podcasts = StudentAIPodcast.objects.filter(student__user__username=student_username)
             serializer = StudentAIPodcastSerializer(podcasts, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -157,14 +160,18 @@ class StudentAIPodcastView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
-        data = request.data.copy()
-        data["student"] = request.user.student_profile.id  # Auto-assign logged-in student
+            if not request.user.is_authenticated:
+                return Response({"error": "User not authenticated"}, status=status.HTTP_401_UNAUTHORIZED)
 
-        serializer = StudentAIPodcastSerializer(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            if not hasattr(request.user, 'student_profile'):
+                return Response({"error": "Student profile not found"}, status=status.HTTP_400_BAD_REQUEST)
+
+            serializer = StudentAIPodcastSerializer(data=request.data, context={'request': request})
+            if serializer.is_valid():
+                serializer.save(student=request.user.student_profile)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def patch(self, request, pk):
         try:
@@ -311,7 +318,7 @@ class LevelHistoryView(APIView):
 
         if pk:
             try:
-                level = LevelHistory.objects.get(pk=pk)
+                level = LevelHistory.objects.get(id=pk)
                 serializer = LevelHistorySerializer(level)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             except LevelHistory.DoesNotExist:
@@ -322,15 +329,19 @@ class LevelHistoryView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
+        student_profile = getattr(request.user, 'student_profile', None)  
+        if not student_profile:
+            return Response({"error": "Student profile not found"}, status=status.HTTP_400_BAD_REQUEST)
         serializer = LevelHistorySerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(student=student_profile)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
     def patch(self, request, pk):
         try:
-            level = LevelHistory.objects.get(pk=pk)
+            level = LevelHistory.objects.get(id=pk)
         except LevelHistory.DoesNotExist:
             return Response({"error": "Level history not found"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -342,7 +353,7 @@ class LevelHistoryView(APIView):
 
     def delete(self, request, pk):
         try:
-            level = LevelHistory.objects.get(pk=pk)
+            level = LevelHistory.objects.get(id=pk)
             level.delete()
             return Response({"message": "Level history deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
         except LevelHistory.DoesNotExist:
@@ -351,15 +362,15 @@ class LevelHistoryView(APIView):
 class LevelMilestonesView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, pk=None, student_id=None):
-        if student_id:
-            milestones = LevelMilestones.objects.filter(student_id=student_id)
+    def get(self, request, pk=None, student_username=None):
+        if student_username:
+            milestones = LevelMilestones.objects.filter(student__user__username=student_username)
             serializer = LevelMilestonesSerializer(milestones, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         if pk:
             try:
-                milestone = LevelMilestones.objects.get(pk=pk)
+                milestone = LevelMilestones.objects.get(id=pk)
                 serializer = LevelMilestonesSerializer(milestone)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             except LevelMilestones.DoesNotExist:
@@ -370,15 +381,19 @@ class LevelMilestonesView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
+        student_profile = getattr(request.user, 'student_profile', None)
+        if not student_profile:
+            return Response({"error": "Student profile not found"}, status=status.HTTP_400_BAD_REQUEST)
         serializer = LevelMilestonesSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(student=student_profile)  # ✅ Assign student automatically
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
     def patch(self, request, pk):
         try:
-            milestone = LevelMilestones.objects.get(pk=pk)
+            milestone = LevelMilestones.objects.get(id=pk)
         except LevelMilestones.DoesNotExist:
             return Response({"error": "Milestone not found"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -390,7 +405,7 @@ class LevelMilestonesView(APIView):
 
     def delete(self, request, pk):
         try:
-            milestone = LevelMilestones.objects.get(pk=pk)
+            milestone = LevelMilestones.objects.get(id=pk)
             milestone.delete()
             return Response({"message": "Milestone deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
         except LevelMilestones.DoesNotExist:
@@ -495,9 +510,9 @@ class AchievementsManagementView(APIView):
 class StudentLoginStreakView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, student_id=None):
+    def get(self, request, student_username=None):
         try:
-            streak = StudentLoginStreak.objects.get(student_id=student_id)
+            streak = StudentLoginStreak.objects.get(student__user__username=student_username)
             serializer = StudentLoginStreakSerializer(streak)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except StudentLoginStreak.DoesNotExist:
@@ -513,9 +528,9 @@ class StudentLoginStreakView(APIView):
 class StudentTestHistoryView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, pk=None, student_id=None):
-        if student_id:
-            histories = StudentTestHistory.objects.filter(student_id=student_id)
+    def get(self, request, pk=None, student_username=None):
+        if student_username:
+            histories = StudentTestHistory.objects.filter(student__user__username=student_username)
             serializer = StudentTestHistorySerializer(histories, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -532,9 +547,12 @@ class StudentTestHistoryView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
-        serializer = StudentTestHistorySerializer(data=request.data)
+        student_profile = getattr(request.user, 'student_profile', None)
+        if not student_profile:
+            return Response({"error": "Student profile not found"}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = StudentTestHistorySerializer(data=request.data)   
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(student=student_profile)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

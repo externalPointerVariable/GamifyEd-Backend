@@ -3,6 +3,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from django.contrib.auth.models import User
+from django.contrib.auth import authenticate
 from .models import UserProfile, StudentProfile, StudentLoginStreak, JoinedClassrooms, StudentAIPodcast, DailyMissions, XPBreakdown, StudentCalendarEvent, LevelHistory, LevelMilestones, LevelRewards, AchievementsManagement, StudentTestHistory
 from teacher.models import TeacherProfile, Classrooms
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -43,15 +44,24 @@ class LoginSerializer(serializers.Serializer):
     password = serializers.CharField(write_only=True)
 
     def validate(self, data):
-        user = User.objects.filter(username=data["username"]).first()
-        if user and user.check_password(data["password"]):
-            refresh = RefreshToken.for_user(user)
-            return {
-                "refresh": str(refresh),
-                "access": str(refresh.access_token),
-                "role": user.profile.role,
-            }
-        raise serializers.ValidationError("Invalid credentials")
+        user = authenticate(username=data["username"], password=data["password"])
+        if not user:
+            raise serializers.ValidationError("Invalid credentials")
+
+        refresh = RefreshToken.for_user(user)
+        response_data = {
+            "refresh": str(refresh),
+            "access": str(refresh.access_token),
+            "role": user.profile.role,
+        }
+        if hasattr(user, "student_profile"):
+            student_profile = user.student_profile
+            streak, created = StudentLoginStreak.objects.get_or_create(student=student_profile)
+            streak.update_streak()  
+            streak.refresh_from_db() 
+            response_data["streak"] = StudentLoginStreakSerializer(streak).data
+
+        return response_data
     
 class PasswordResetSerializer(serializers.Serializer):
     email = serializers.EmailField()
@@ -144,8 +154,18 @@ class JoinedClassroomSerializer(serializers.ModelSerializer):
 class StudentAIPodcastSerializer(serializers.ModelSerializer):
     class Meta:
         model = StudentAIPodcast
-        fields = ['id', 'student', 'title', 'description', 'audio', 'points', 'created_at']
-        read_only_fields = ['id', 'student', 'created_at']
+        fields = '__all__'
+        read_only_fields = ['id', 'student']
+
+    def create(self, validated_data):
+        request = self.context.get('request', None)
+        if request and hasattr(request.user, 'student_profile'):
+            validated_data['student'] = request.user.student_profile
+        else:
+            raise serializers.ValidationError({"error": "Student profile not found"})
+
+        return super().create(validated_data)
+
 
 class DailyMissionsSerializer(serializers.ModelSerializer):
     class Meta:
@@ -168,13 +188,13 @@ class StudentCalendarEventSerializer(serializers.ModelSerializer):
 class LevelHistorySerializer(serializers.ModelSerializer):
     class Meta:
         model = LevelHistory
-        fields = '__all__'
+        exclude = ['student']  # ✅ Remove 'student' from required fields
         read_only_fields = ['id', 'completion_date']
 
 class LevelMilestonesSerializer(serializers.ModelSerializer):
     class Meta:
         model = LevelMilestones
-        fields = '__all__'
+        exclude = ['student']
         read_only_fields = ['id', 'unlocked_date']
 
 class LevelRewardsSerializer(serializers.ModelSerializer):
@@ -193,10 +213,10 @@ class StudentLoginStreakSerializer(serializers.ModelSerializer):
     class Meta:
         model = StudentLoginStreak
         fields = '__all__'
-        read_only_fields = ['id', 'longest_streak', 'last_login_date']
+        read_only_fields = ['longest_streak', 'last_login_date']
 
 class StudentTestHistorySerializer(serializers.ModelSerializer):
     class Meta:
         model = StudentTestHistory
-        fields = '__all__'
+        exclude = ['student']
         read_only_fields = ['id', 'created_at']

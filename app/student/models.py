@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from teacher.models import Classrooms
 from django.utils import timezone
+from datetime import timedelta
 
 user = get_user_model()
 
@@ -52,9 +53,6 @@ class DailyMissions(models.Model):
     points = models.IntegerField(default=0)  # Points rewarded upon completion
     created_at = models.DateTimeField(auto_now_add=True)
 
-from django.db import models
-from student.models import StudentProfile  # Import StudentProfile
-
 class XPBreakdown(models.Model):
     student = models.OneToOneField(StudentProfile, on_delete=models.CASCADE, related_name="xp_breakdown")
     quizes_completed = models.IntegerField(default=0)
@@ -63,7 +61,7 @@ class XPBreakdown(models.Model):
     total_xp = models.IntegerField(default=0) 
     def calculate_total_xp(self):
         """Recalculate total XP based on completed activities."""
-        self.total_xp = (self.quizes_completed * 10) + (self.achievements_earned * 20) + (self.daily_logins * 5)
+        self.total_xp = (self.quizes_completed) + (self.achievements_earned) + (self.daily_logins)
         self.save()
 
 class StudentCalendarEvent(models.Model):
@@ -120,11 +118,12 @@ class StudentLoginStreak(models.Model):
 
     def update_streak(self):
         today = timezone.now().date()
+        if self.last_login_date == today:
+            return  
         if self.last_login_date is None or (today - self.last_login_date).days > 1:
-            self.current_streak = 1  # Reset streak if missed a day
-        elif (today - self.last_login_date).days == 1:
-            self.current_streak += 1  # Increase streak if logged in consecutive days
-
+            self.current_streak = 1 
+        else:
+            self.current_streak += 1 
         self.longest_streak = max(self.longest_streak, self.current_streak)
         self.last_login_date = today
         self.save()
