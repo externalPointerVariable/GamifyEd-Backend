@@ -1,5 +1,5 @@
 from django.urls import path, get_resolver
-from student.views import RegisterView, LoginView, StudentProfileView, StudentTestHistoryView, StudentLoginStreakView, JoinedClassroomView, StudentAIPodcastView, PasswordResetView, PasswordResetConfirmView, DailyMissionsView, XPBreakdownView, StudentCalendarEventView, LevelHistoryView, LevelMilestonesView, AchievementsManagementView
+from student.views import RegisterView, LoginView, StudentProfileView, StudentTestHistoryView, StudentLoginStreakView, JoinedClassroomView, StudentAIPodcastView, PasswordResetView, PasswordResetConfirmView, DailyMissionsView, XPBreakdownView, StudentCalendarEventView, LevelHistoryView, LevelMilestonesView, AchievementsManagementView, StudentRecentActivitiesView, StudentRecentActivityDetailView
 from teacher.views import UserProfileView, ClassroomsManagerView, ClassroomAnnouncementView, ClassroomSharedMaterialView, ClassroomTestActivitiesView, ClassroomCalendarEventsView, TeacherRecentActivitiesView, TeacherAIPodcastManagerView, ClassTestStoreView
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
@@ -81,4 +81,6 @@ urlpatterns = [
     path("student/test-history/", StudentTestHistoryView.as_view(), name="student_test_history"),  # Get all histories
     path("student/test-history/<int:pk>/", StudentTestHistoryView.as_view(), name="test_history_details"),  # Single test history
     path("student/test-history/student/<str:student_username>/", StudentTestHistoryView.as_view(), name="student_test_history_list"),  # Filter by student
+    path("student/recent-activities/", StudentRecentActivitiesView.as_view(), name="student_recent_activities"),
+    path("student/recent-activities/<int:pk>/", StudentRecentActivityDetailView.as_view(), name="student_recent_activity_detail"),
 ]

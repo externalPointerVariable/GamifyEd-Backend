@@ -1,5 +1,5 @@
 from django.contrib import admin
-from student.models import UserProfile, StudentProfile, JoinedClassrooms, StudentAIPodcast, StudentLoginStreak, StudentCalendarEvent, StudentTestHistory, AchievementsManagement, LevelHistory, LevelMilestones, LevelRewards, XPBreakdown, DailyMissions
+from student.models import UserProfile, StudentProfile, JoinedClassrooms, StudentAIPodcast, StudentLoginStreak, StudentCalendarEvent, StudentTestHistory, AchievementsManagement, LevelHistory, LevelMilestones, LevelRewards, XPBreakdown, DailyMissions, StudentRecentActivities
 
 # Register your models here
 admin.site.register(UserProfile)
@@ -15,3 +15,4 @@ admin.site.register(LevelMilestones)
 admin.site.register(LevelRewards)
 admin.site.register(XPBreakdown)
 admin.site.register(DailyMissions)
+admin.site.register(StudentRecentActivities)
