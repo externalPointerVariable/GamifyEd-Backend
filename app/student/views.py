@@ -262,9 +262,9 @@ class XPBreakdownView(APIView):
 class StudentCalendarEventView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, pk=None, student_id=None):
-        if student_id:
-            events = StudentCalendarEvent.objects.filter(student_id=student_id)
+    def get(self, request, pk=None, student_username=None):
+        if student_username:
+            events = StudentCalendarEvent.objects.filter(student__user__username=student_username)
             serializer = StudentCalendarEventSerializer(events, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -281,27 +281,36 @@ class StudentCalendarEventView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
+        if not hasattr(request.user, 'student_profile'):
+            return Response({"error": "Student profile not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        student = request.user.student_profile
         serializer = StudentCalendarEventSerializer(data=request.data)
+        
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(student=student)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def patch(self, request, pk):
-        try:
-            event = StudentCalendarEvent.objects.get(pk=pk)
-        except StudentCalendarEvent.DoesNotExist:
-            return Response({"error": "Event not found"}, status=status.HTTP_404_NOT_FOUND)
+    def patch(self, request, pk=None):  # Ensure `pk=None` to handle missing `pk`
+            if pk is None:
+                return Response({"error": "Event ID is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer = StudentCalendarEventSerializer(event, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            try:
+                event = StudentCalendarEvent.objects.get(id=pk)
+            except StudentCalendarEvent.DoesNotExist:
+                return Response({"error": "Event not found"}, status=status.HTTP_404_NOT_FOUND)
+
+            serializer = StudentCalendarEventSerializer(event, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
         try:
-            event = StudentCalendarEvent.objects.get(pk=pk)
+            event = StudentCalendarEvent.objects.get(id=pk)
             event.delete()
             return Response({"message": "Event deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
         except StudentCalendarEvent.DoesNotExist:

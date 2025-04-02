@@ -182,7 +182,7 @@ class XPBreakdownSerializer(serializers.ModelSerializer):
 class StudentCalendarEventSerializer(serializers.ModelSerializer):
     class Meta:
         model = StudentCalendarEvent
-        fields = '__all__'
+        exclude = ['student']
         read_only_fields = ['id', 'created_at']
 
 class LevelHistorySerializer(serializers.ModelSerializer):
