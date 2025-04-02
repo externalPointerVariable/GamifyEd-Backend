@@ -224,12 +224,15 @@ class StudentTestHistorySerializer(serializers.ModelSerializer):
 class StudentRecentActivitiesSerializer(serializers.ModelSerializer):
     class Meta:
         model = StudentRecentActivities
-        exclude = ['student']
+        exclude = ['student']  # Student is auto-assigned
         read_only_fields = ['id', 'created_at']
+
     def create(self, validated_data):
-        request = self.context.get('request', None)
-        if request and hasattr(request.user, 'student_profile'):
-            validated_data['student'] = request.user.student_profile
-        else:
+        request = self.context.get('request')
+        if not request or not hasattr(request.user, 'student_profile'):
             raise serializers.ValidationError({"error": "Student profile not found"})
-        return super().create(validated_data)
+
+        return StudentRecentActivities.objects.create(
+            student=request.user.student_profile,
+            **validated_data
+        )

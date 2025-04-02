@@ -585,31 +585,30 @@ class StudentTestHistoryView(APIView):
         except StudentTestHistory.DoesNotExist:
             return Response({"error": "Test history not found"}, status=status.HTTP_404_NOT_FOUND)
 
-class StudentRecentActivitiesView(APIView):
+class StudentRecentActivitiesView(generics.ListCreateAPIView):
+    serializer_class = StudentRecentActivitiesSerializer
     permission_classes = [IsAuthenticated]
-    def get(self, request, pk=None, student_username=None):
+
+    def get_queryset(self):
+        student_username = self.request.query_params.get("student_username", None)
+
         if student_username:
-            activities = StudentRecentActivities.objects.filter(student__user__username=student_username)
-            serializer = StudentRecentActivitiesSerializer(activities, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            return StudentRecentActivities.objects.filter(student__user__username=student_username)
 
-        if pk:
-            try:
-                activity = StudentRecentActivities.objects.get(id=pk)
-                serializer = StudentRecentActivitiesSerializer(activity)
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            except StudentRecentActivities.DoesNotExist:
-                return Response({"error": "Activity not found"}, status=status.HTTP_404_NOT_FOUND)
+        return StudentRecentActivities.objects.filter(student=self.request.user.student_profile)
 
-        activities = StudentRecentActivities.objects.all()
-        serializer = StudentRecentActivitiesSerializer(activities, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    def post(self, request):
-        student_profile = getattr(request.user, 'student_profile', None)
-        if not student_profile:
-            return Response({"error": "Student profile not found"}, status=status.HTTP_400_BAD_REQUEST)
-        serializer = StudentRecentActivitiesSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(student=student_profile)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def perform_create(self, serializer):
+        serializer.save(student=self.request.user.student_profile)
+
+
+class StudentRecentActivityDetailView(generics.RetrieveAPIView):
+    queryset = StudentRecentActivities.objects.all()
+    serializer_class = StudentRecentActivitiesSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        try:
+            activity = self.get_object()
+            return Response(self.serializer_class(activity).data, status=status.HTTP_200_OK)
+        except StudentRecentActivities.DoesNotExist:
+            return Response({"error": "Activity not found"}, status=status.HTTP_404_NOT_FOUND)
