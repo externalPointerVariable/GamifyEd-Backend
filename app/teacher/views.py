@@ -65,9 +65,9 @@ class TeacherProfileView(APIView):
 class ClassroomsManagerView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, pk=None, teacher_id=None):
-        if teacher_id:
-            classrooms = Classrooms.objects.filter(teacher__id=teacher_id)
+    def get(self, request, pk=None, teacher_username=None):
+        if teacher_username:
+            classrooms = Classrooms.objects.filter(teacher__user__username=teacher_username)
             serializer = ClassroomsManagerSerializer(classrooms, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
