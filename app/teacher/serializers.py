@@ -27,12 +27,12 @@ class TeacherProfileSerializer(serializers.ModelSerializer):
 class ClassroomsManagerSerializer(serializers.ModelSerializer):  
     class Meta:  
         model = Classrooms  
-        fields = ['id', 'teacher', 'name', 'subject', 'students', 'students_id', 'status', 'classroom_code', 'created_at']  
+        fields = ['id', 'teacher', 'name', 'subject', 'students', 'students_username', 'status', 'classroom_code', 'created_at']  
         read_only_fields = ['id', 'created_at', 'classroom_code', 'students']  
 
     def create(self, validated_data):  
         validated_data['classroom_code'] = Classrooms._meta.get_field('classroom_code').get_default()        
-        validated_data.setdefault('students_id', [])
+        validated_data.setdefault('students_username', [])
         validated_data.setdefault('status', 'active')
         return Classrooms.objects.create(**validated_data)  
 
@@ -41,10 +41,10 @@ class ClassroomsManagerSerializer(serializers.ModelSerializer):
         instance.subject = validated_data.get('subject', instance.subject)  
         instance.status = validated_data.get('status', instance.status)
 
-        students_id = validated_data.get('students_id', instance.students_id)
-        if isinstance(students_id, list):
-            instance.students_id = students_id
-        instance.students = len(instance.students_id)
+        students_username = validated_data.get('students_username', instance.students_username)
+        if isinstance(students_username, list):
+            instance.students_username = students_username
+        instance.students = len(instance.students_username)
         instance.save()  
         return instance  
 

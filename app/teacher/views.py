@@ -85,7 +85,7 @@ class ClassroomsManagerView(APIView):
 
     def post(self, request):
         data = request.data.copy()
-        data['teacher'] = request.user.teacher_profile.id
+        data['teacher'] = request.user.teacher_profile.user.username
         data.setdefault('students_id', [])
         data.setdefault('status', 'active')
         
