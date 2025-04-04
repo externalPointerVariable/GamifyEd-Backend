@@ -85,14 +85,17 @@ class ClassroomsManagerView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
+        teacher_profile = getattr(request.user, 'teacher_profile', None)
+        if not teacher_profile:
+            return Response({"error": "Teacher profile not found"}, status=status.HTTP_400_BAD_REQUEST)
+
         data = request.data.copy()
-        data['teacher_username'] = request.user.username
         data.setdefault('student_usernames', [])
         data.setdefault('status', 'active')
 
-        serializer = ClassroomsManagerSerializer(data=data)
+        serializer = ClassroomsManagerSerializer(data=data, context={'request': request})
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(teacher=teacher_profile)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
