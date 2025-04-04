@@ -152,12 +152,12 @@ class ClassroomAnnouncementView(APIView):
 
         return Response({"error": "Classroom ID is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-    def post(self, request):
+    def post(self, request, classroom_id=None):
         data = request.data.copy()
-        data['classroom'] = request.data.get('classroom_id')
+        data['classroom'] = classroom_id
 
         try:
-            classroom = Classrooms.objects.get(pk=data['classroom'], teacher=request.user.teacher_profile)
+            classroom = Classrooms.objects.get(pk=classroom_id, teacher=request.user.teacher_profile)
         except Classrooms.DoesNotExist:
             return Response({"error": "Classroom not found or not owned by you"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -166,6 +166,7 @@ class ClassroomAnnouncementView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
     def patch(self, request, pk):
         try:
