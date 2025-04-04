@@ -2,6 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
+from student.models import StudentProfile
 from student.serializers import StudentProfileSerializer
 from .serializers import TeacherProfileSerializer, ClassroomsManagerSerializer, ClassroomAnnouncementSerializer, ClassroomSharedMaterialSerializer, ClassroomTestActivitiesSerializer, ClassroomCalendarEventsSerializer, TeacherRecentActivitiesSerializer, TeacherAIPodcastManagerSerializer, ClassTestStoreSerializer
 from .models import Classrooms, ClassroomAnnouncements, TeacherProfile, ClassroomSharedMaterials, ClassroomsTestActivities, ClassroomCalendarEvents,TeacherRecentActivities,TeacherAIPodcastManager, ClassTestStore
@@ -73,47 +74,47 @@ class ClassroomsManagerView(APIView):
 
         if pk:
             try:
-                classroom = Classrooms.objects.get(pk=pk, teacher=request.user.teacher_profile)
+                classroom = Classrooms.objects.get(pk=pk, teacher__user=request.user)
                 serializer = ClassroomsManagerSerializer(classroom)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             except Classrooms.DoesNotExist:
                 return Response({"error": "Classroom not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        classrooms = Classrooms.objects.filter(teacher=request.user.teacher_profile)
+        classrooms = Classrooms.objects.filter(teacher__user=request.user)
         serializer = ClassroomsManagerSerializer(classrooms, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
+        teacher_profile = getattr(request.user, 'teacher_profile', None)
+        if not teacher_profile:
+            return Response({"error": "Teacher profile not found"}, status=status.HTTP_400_BAD_REQUEST)
+
         data = request.data.copy()
-        data['teacher'] = request.user.teacher_profile.id
-        data.setdefault('students_id', [])
+        data.setdefault('student_usernames', [])
         data.setdefault('status', 'active')
-        
-        serializer = ClassroomsManagerSerializer(data=data)
+
+        serializer = ClassroomsManagerSerializer(data=data, context={'request': request})
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(teacher=teacher_profile)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def patch(self, request, pk):
         try:
-            classroom = Classrooms.objects.get(pk=pk, teacher=request.user.teacher_profile)
+            classroom = Classrooms.objects.get(pk=pk, teacher__user=request.user)
         except Classrooms.DoesNotExist:
             return Response({"error": "Classroom not found"}, status=status.HTTP_404_NOT_FOUND)
 
         data = request.data.copy()
 
-        if 'students_id' in data:
-            if isinstance(data['students_id'], list):
-                classroom.students_id = data['students_id']
-                classroom.students = len(data['students_id']) 
+        if 'student_usernames' in data:
+            if isinstance(data['student_usernames'], list):
+                data['students'] = StudentProfile.objects.filter(user__username__in=data['student_usernames'])
             else:
-                return Response({"error": "students_id must be a list"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"error": "student_usernames must be a list"}, status=status.HTTP_400_BAD_REQUEST)
 
         if 'status' in data:
-            if data['status'] in ["active", "archived"]:
-                classroom.status = data['status']
-            else:
+            if data['status'] not in ["active", "archived"]:
                 return Response({"error": "Invalid status. Must be 'active' or 'archived'."}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = ClassroomsManagerSerializer(classroom, data=data, partial=True)
@@ -124,11 +125,13 @@ class ClassroomsManagerView(APIView):
 
     def delete(self, request, pk):
         try:
-            classroom = Classrooms.objects.get(pk=pk, teacher=request.user.teacher_profile)
+            classroom = Classrooms.objects.get(pk=pk, teacher__user=request.user)
             classroom.delete()
             return Response({"message": "Classroom deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
         except Classrooms.DoesNotExist:
             return Response({"error": "Classroom not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        
 class ClassroomAnnouncementView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -149,12 +152,12 @@ class ClassroomAnnouncementView(APIView):
 
         return Response({"error": "Classroom ID is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-    def post(self, request):
+    def post(self, request, classroom_id=None):
         data = request.data.copy()
-        data['classroom'] = request.data.get('classroom_id')
+        data['classroom'] = classroom_id
 
         try:
-            classroom = Classrooms.objects.get(pk=data['classroom'], teacher=request.user.teacher_profile)
+            classroom = Classrooms.objects.get(pk=classroom_id, teacher=request.user.teacher_profile)
         except Classrooms.DoesNotExist:
             return Response({"error": "Classroom not found or not owned by you"}, status=status.HTTP_404_NOT_FOUND)
 

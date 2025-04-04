@@ -30,7 +30,7 @@ class Classrooms(models.Model):
     name = models.CharField(max_length=225)
     subject = models.CharField(max_length=225)
     students = models.IntegerField(default=0, validators=[MinValueValidator(0)])
-    students_id = models.JSONField(default=list) 
+    students_username = models.JSONField(default=list) 
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="active") 
     classroom_code = models.CharField(max_length=6, unique=True, default=generateUniqueCode)
     created_at = models.DateTimeField(auto_now_add=True)

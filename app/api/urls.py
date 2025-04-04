@@ -33,9 +33,9 @@ urlpatterns = [
 
     # Classroom Endpoints (Teacher)
     path("teacher/profile/", TeacherProfileView.as_view(), name="teacher_profile"),
-    path("classroom/teacher/", ClassroomsManagerView.as_view(), name="teacher_classroom"),  # Get all classrooms (teacher)
-    path("classroom/teacher/<int:pk>/", ClassroomsManagerView.as_view(), name="classroom_details"),  # Single classroom
-    path("classroom/teacher/cluster/<str:teacher_username>/", ClassroomsManagerView.as_view(), name="classrooms_groupby_teacher"),  # Filtered by teacher
+    path("classroom/teacher/", ClassroomsManagerView.as_view(), name="teacher_classroom"),  # Get all classrooms for authenticated teacher or create
+    path("classroom/teacher/<int:pk>/", ClassroomsManagerView.as_view(), name="classroom_details"),  # Single classroom by pk
+    path("classroom/teacher/cluster/<str:teacher_username>/", ClassroomsManagerView.as_view(), name="classrooms_groupby_teacher"),  # All classrooms by teacher_username
     path("classroom/<int:classroom_id>/announcements/", ClassroomAnnouncementView.as_view(), name="classroom_announcements"),
     path("classroom/announcement/<int:pk>/", ClassroomAnnouncementView.as_view(), name="announcement_details"),
     path("classroom/materials/upload/", ClassroomSharedMaterialView.as_view(), name="upload_classroom_material"),

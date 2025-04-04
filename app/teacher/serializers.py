@@ -24,33 +24,53 @@ class TeacherProfileSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
     
-class ClassroomsManagerSerializer(serializers.ModelSerializer):  
-    class Meta:  
-        model = Classrooms  
-        fields = ['id', 'teacher', 'name', 'subject', 'students', 'students_id', 'status', 'classroom_code', 'created_at']  
-        read_only_fields = ['id', 'created_at', 'classroom_code', 'students']  
+class ClassroomsManagerSerializer(serializers.ModelSerializer):
+    teacher_username = serializers.SerializerMethodField()
+    students_usernames = serializers.SerializerMethodField()
 
-    def create(self, validated_data):  
-        validated_data['classroom_code'] = Classrooms._meta.get_field('classroom_code').get_default()        
-        validated_data.setdefault('students_id', [])
+    class Meta:
+        model = Classrooms
+        fields = [
+            'id', 'teacher_username', 'name', 'subject',
+            'students', 'students_usernames', 'status',
+            'classroom_code', 'created_at'
+        ]
+        read_only_fields = ['id', 'created_at', 'classroom_code', 'students', 'teacher_username']
+
+    def get_teacher_username(self, obj):
+        return obj.teacher.user.username if obj.teacher and obj.teacher.user else None
+
+    def get_students_usernames(self, obj):
+        return obj.students_username or []
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+        teacher = getattr(request.user, 'teacher_profile', None)
+
+        if not teacher:
+            raise serializers.ValidationError({"error": "Teacher profile not found"})
+
+        validated_data['teacher'] = teacher
+        validated_data['classroom_code'] = Classrooms._meta.get_field('classroom_code').get_default()
+        validated_data.setdefault('students_username', [])
         validated_data.setdefault('status', 'active')
-        return Classrooms.objects.create(**validated_data)  
+        validated_data['students'] = len(validated_data['students_username'])
 
-    def update(self, instance, validated_data):  
-        instance.name = validated_data.get('name', instance.name)  
-        instance.subject = validated_data.get('subject', instance.subject)  
+        return Classrooms.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        instance.name = validated_data.get('name', instance.name)
+        instance.subject = validated_data.get('subject', instance.subject)
         instance.status = validated_data.get('status', instance.status)
 
-        students_id = validated_data.get('students_id', instance.students_id)
-        if isinstance(students_id, list):
-            instance.students_id = students_id
-        instance.students = len(instance.students_id)
-        instance.save()  
-        return instance  
+        students_username = validated_data.get('students_username')
+        if isinstance(students_username, list):
+            instance.students_username = students_username
+            instance.students = len(students_username)
 
-    def delete(self, instance):  
-        instance.delete()
-
+        instance.save()
+        return instance
+    
 class ClassroomAnnouncementSerializer(serializers.ModelSerializer):
     class Meta:
         model = ClassroomAnnouncements
