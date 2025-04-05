@@ -194,14 +194,18 @@ class ClassroomSharedMaterialView(APIView):
         """Retrieve shared materials for a classroom or a specific material by ID"""
         if pk:
             try:
-                material = ClassroomSharedMaterials.objects.get(pk=pk)
+                material = ClassroomSharedMaterials.objects.get(
+                    pk=pk, classroom__teacher=request.user.teacher_profile
+                )
                 serializer = ClassroomSharedMaterialSerializer(material)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             except ClassroomSharedMaterials.DoesNotExist:
                 return Response({"error": "Material not found"}, status=status.HTTP_404_NOT_FOUND)
-        
+
         if classroom_id:
-            materials = ClassroomSharedMaterials.objects.filter(classroom__id=classroom_id)
+            materials = ClassroomSharedMaterials.objects.filter(
+                classroom__id=classroom_id, classroom__teacher=request.user.teacher_profile
+            )
             serializer = ClassroomSharedMaterialSerializer(materials, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -209,16 +213,27 @@ class ClassroomSharedMaterialView(APIView):
 
     def post(self, request):
         """Upload a new shared material"""
+        classroom_id = request.data.get('classroom')
+        if not classroom_id:
+            return Response({"error": "Classroom ID is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            classroom = Classrooms.objects.get(id=classroom_id, teacher=request.user.teacher_profile)
+        except Classrooms.DoesNotExist:
+            return Response({"error": "Classroom not found or not owned by you"}, status=status.HTTP_404_NOT_FOUND)
+
         serializer = ClassroomSharedMaterialSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(classroom=classroom)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def patch(self, request, pk):
         """Update details of a shared material"""
         try:
-            material = ClassroomSharedMaterials.objects.get(pk=pk)
+            material = ClassroomSharedMaterials.objects.get(
+                pk=pk, classroom__teacher=request.user.teacher_profile
+            )
         except ClassroomSharedMaterials.DoesNotExist:
             return Response({"error": "Material not found"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -231,7 +246,9 @@ class ClassroomSharedMaterialView(APIView):
     def delete(self, request, pk):
         """Delete a shared material"""
         try:
-            material = ClassroomSharedMaterials.objects.get(pk=pk)
+            material = ClassroomSharedMaterials.objects.get(
+                pk=pk, classroom__teacher=request.user.teacher_profile
+            )
             material.delete()
             return Response({"message": "Material deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
         except ClassroomSharedMaterials.DoesNotExist:
