@@ -211,20 +211,14 @@ class ClassroomSharedMaterialView(APIView):
 
         return Response({"error": "Classroom ID is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-    def post(self, request):
+    def post(self, request, classroom_id=None):
         """Upload a new shared material"""
-        classroom_id = request.data.get('classroom')
-        if not classroom_id:
-            return Response({"error": "Classroom ID is required"}, status=status.HTTP_400_BAD_REQUEST)
+        data = request.data.copy()
+        data['classroom'] = classroom_id  # Ensure classroom is assigned from URL
 
-        try:
-            classroom = Classrooms.objects.get(id=classroom_id, teacher=request.user.teacher_profile)
-        except Classrooms.DoesNotExist:
-            return Response({"error": "Classroom not found or not owned by you"}, status=status.HTTP_404_NOT_FOUND)
-
-        serializer = ClassroomSharedMaterialSerializer(data=request.data)
+        serializer = ClassroomSharedMaterialSerializer(data=data)
         if serializer.is_valid():
-            serializer.save(classroom=classroom)
+            serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
