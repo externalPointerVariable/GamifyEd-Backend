@@ -194,22 +194,29 @@ class ClassroomSharedMaterialView(APIView):
         """Retrieve shared materials for a classroom or a specific material by ID"""
         if pk:
             try:
-                material = ClassroomSharedMaterials.objects.get(pk=pk)
+                material = ClassroomSharedMaterials.objects.get(
+                    pk=pk, classroom__teacher=request.user.teacher_profile
+                )
                 serializer = ClassroomSharedMaterialSerializer(material)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             except ClassroomSharedMaterials.DoesNotExist:
                 return Response({"error": "Material not found"}, status=status.HTTP_404_NOT_FOUND)
-        
+
         if classroom_id:
-            materials = ClassroomSharedMaterials.objects.filter(classroom__id=classroom_id)
+            materials = ClassroomSharedMaterials.objects.filter(
+                classroom__id=classroom_id, classroom__teacher=request.user.teacher_profile
+            )
             serializer = ClassroomSharedMaterialSerializer(materials, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         return Response({"error": "Classroom ID is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-    def post(self, request):
+    def post(self, request, classroom_id=None):
         """Upload a new shared material"""
-        serializer = ClassroomSharedMaterialSerializer(data=request.data)
+        data = request.data.copy()
+        data['classroom'] = classroom_id  # Ensure classroom is assigned from URL
+
+        serializer = ClassroomSharedMaterialSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -218,7 +225,9 @@ class ClassroomSharedMaterialView(APIView):
     def patch(self, request, pk):
         """Update details of a shared material"""
         try:
-            material = ClassroomSharedMaterials.objects.get(pk=pk)
+            material = ClassroomSharedMaterials.objects.get(
+                pk=pk, classroom__teacher=request.user.teacher_profile
+            )
         except ClassroomSharedMaterials.DoesNotExist:
             return Response({"error": "Material not found"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -231,7 +240,9 @@ class ClassroomSharedMaterialView(APIView):
     def delete(self, request, pk):
         """Delete a shared material"""
         try:
-            material = ClassroomSharedMaterials.objects.get(pk=pk)
+            material = ClassroomSharedMaterials.objects.get(
+                pk=pk, classroom__teacher=request.user.teacher_profile
+            )
             material.delete()
             return Response({"message": "Material deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
         except ClassroomSharedMaterials.DoesNotExist:

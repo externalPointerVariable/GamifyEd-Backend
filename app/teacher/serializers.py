@@ -82,6 +82,17 @@ class ClassroomSharedMaterialSerializer(serializers.ModelSerializer):
         model = ClassroomSharedMaterials
         fields = ['id', 'classroom', 'title', 'description', 'file', 'link', 'uploaded_at']
         read_only_fields = ['id', 'uploaded_at']
+        extra_kwargs = {
+            'description': {'required': False},
+            'file': {'required': False},
+            'link': {'required': False},
+        }
+
+    def validate(self, data):
+        # Example: Ensure at least file or link is provided
+        if not data.get('file') and not data.get('link'):
+            raise serializers.ValidationError("You must provide either a file or a link.")
+        return data
 
 class ClassroomTestActivitiesSerializer(serializers.ModelSerializer):
     class Meta:
