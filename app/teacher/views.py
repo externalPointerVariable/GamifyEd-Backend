@@ -358,9 +358,9 @@ class ClassroomCalendarEventsView(APIView):
 class TeacherRecentActivitiesView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, teacher_id=None):
-        if teacher_id:
-            activities = TeacherRecentActivities.objects.filter(teacher__id=teacher_id).order_by('-created_at')
+    def get(self, request, teacher_username=None):
+        if teacher_username:
+            activities = TeacherRecentActivities.objects.filter(teacher__user__username=teacher_username).order_by('-created_at')
             serializer = TeacherRecentActivitiesSerializer(activities, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
