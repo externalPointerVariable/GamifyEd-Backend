@@ -366,12 +366,19 @@ class TeacherRecentActivitiesView(APIView):
 
         return Response({"error": "Invalid request"}, status=status.HTTP_400_BAD_REQUEST)
 
-    def post(self, request):
+    def post(self, request, teacher_username):
+        try:
+            teacher_profile = TeacherProfile.objects.get(user__username=teacher_username)
+        except TeacherProfile.DoesNotExist:
+            return Response({"error": "Teacher not found"}, status=status.HTTP_404_NOT_FOUND)
+
         serializer = TeacherRecentActivitiesSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(teacher=teacher_profile)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 class TeacherAIPodcastManagerView(APIView):
     permission_classes = [IsAuthenticated]
