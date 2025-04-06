@@ -358,20 +358,27 @@ class ClassroomCalendarEventsView(APIView):
 class TeacherRecentActivitiesView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, teacher_id=None):
-        if teacher_id:
-            activities = TeacherRecentActivities.objects.filter(teacher__id=teacher_id).order_by('-created_at')
+    def get(self, request, teacher_username=None):
+        if teacher_username:
+            activities = TeacherRecentActivities.objects.filter(teacher__user__username=teacher_username).order_by('-created_at')
             serializer = TeacherRecentActivitiesSerializer(activities, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         return Response({"error": "Invalid request"}, status=status.HTTP_400_BAD_REQUEST)
 
-    def post(self, request):
+    def post(self, request, teacher_username):
+        try:
+            teacher_profile = TeacherProfile.objects.get(user__username=teacher_username)
+        except TeacherProfile.DoesNotExist:
+            return Response({"error": "Teacher not found"}, status=status.HTTP_404_NOT_FOUND)
+
         serializer = TeacherRecentActivitiesSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(teacher=teacher_profile)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 class TeacherAIPodcastManagerView(APIView):
     permission_classes = [IsAuthenticated]

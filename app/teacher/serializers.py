@@ -110,7 +110,20 @@ class TeacherRecentActivitiesSerializer(serializers.ModelSerializer):
     class Meta:
         model = TeacherRecentActivities
         fields = ['id', 'teacher', 'action', 'details', 'created_at']
-        read_only_fields = ['id', 'created_at']
+        read_only_fields = ['id', 'created_at', 'teacher']
+
+    def create(self, validated_data):
+        teacher_username = self.context.get('teacher_username')
+        if not teacher_username:
+            raise serializers.ValidationError({"error": "Teacher username not provided in context."})
+
+        try:
+            teacher_profile = TeacherProfile.objects.get(user__username=teacher_username)
+        except TeacherProfile.DoesNotExist:
+            raise serializers.ValidationError({"error": "Teacher not found."})
+
+        validated_data['teacher'] = teacher_profile
+        return super().create(validated_data)
 
 class TeacherAIPodcastManagerSerializer(serializers.ModelSerializer):
     class Meta:
