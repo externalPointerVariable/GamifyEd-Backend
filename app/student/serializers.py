@@ -127,11 +127,13 @@ class StudentProfileSerializer(serializers.ModelSerializer):
         return instance
     
 class JoinedClassroomSerializer(serializers.ModelSerializer):
-    classroom_code = serializers.CharField(write_only=True) 
+    classroom_code = serializers.CharField(write_only=True)
+
     class Meta:
         model = JoinedClassrooms
         fields = ['id', 'student', 'classroom', 'classroom_code', 'joined_at']
-        read_only_fields = ['id', 'joined_at', 'classroom'] 
+        read_only_fields = ['id', 'joined_at', 'classroom']
+
     def create(self, validated_data):
         student = validated_data['student']
         classroom_code = validated_data.pop('classroom_code')
@@ -144,11 +146,15 @@ class JoinedClassroomSerializer(serializers.ModelSerializer):
         if JoinedClassrooms.objects.filter(student=student, classroom=classroom).exists():
             raise serializers.ValidationError({"error": "Student already joined this classroom"})
 
-        joined_classroom = JoinedClassrooms.objects.create(student=student, classroom=classroom)
+        username = student.user.username
+        if username in classroom.students_username:
+            raise serializers.ValidationError({"error": "Student already in classroom list"})
 
-        classroom.students += 1
+        classroom.students_username.append(username)
+        classroom.students = len(classroom.students_username)
         classroom.save()
 
+        joined_classroom = JoinedClassrooms.objects.create(student=student, classroom=classroom)
         return joined_classroom
     
 class StudentAIPodcastSerializer(serializers.ModelSerializer):

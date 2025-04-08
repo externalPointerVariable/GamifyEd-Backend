@@ -528,7 +528,7 @@ class StudentLoginStreakView(APIView):
             return Response({"error": "Student login streak not found"}, status=status.HTTP_404_NOT_FOUND)
 
     def post(self, request):
-        student = request.user.student_profile
+        student = request.user.username
         streak, created = StudentLoginStreak.objects.get_or_create(student=student)
         streak.update_streak()
         serializer = StudentLoginStreakSerializer(streak)
