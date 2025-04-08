@@ -93,7 +93,8 @@ class JoinedClassroomView(APIView):
 
     def post(self, request):
         data = request.data.copy()
-        student_id = request.user.student_profile.id
+        student_username = request.user.username
+        student_profile = request.user.student_profile
         classroom_code = data.get("classroom_code")
 
         try:
@@ -101,15 +102,14 @@ class JoinedClassroomView(APIView):
         except Classrooms.DoesNotExist:
             return Response({"error": "Invalid classroom code"}, status=status.HTTP_404_NOT_FOUND)
 
-        if str(student_id) in classroom.students_id.split(","):
+        if student_username in classroom.students_username:
             return Response({"error": "Student already joined"}, status=status.HTTP_400_BAD_REQUEST)
 
-        students_list = classroom.students_id.split(",") if classroom.students_id else []
-        students_list.append(str(student_id))
-        classroom.students_id = ",".join(students_list)
-        classroom.students = len(students_list)
+        classroom.students_username.append(student_username)
+        classroom.students = len(classroom.students_username)
         classroom.save()
-        data["student"] = student_id
+
+        data["student"] = student_profile.id
         data["classroom"] = classroom.id 
 
         serializer = JoinedClassroomSerializer(data=data)
@@ -122,14 +122,11 @@ class JoinedClassroomView(APIView):
         try:
             joined_classroom = JoinedClassrooms.objects.get(pk=pk, student=request.user.student_profile)
             classroom = joined_classroom.classroom
+            student_username = request.user.username
 
-            students_list = classroom.students_id.split(",") if classroom.students_id else []
-            student_id = str(request.user.student_profile.id)
-
-            if student_id in students_list:
-                students_list.remove(student_id)
-                classroom.students_id = ",".join(students_list)
-                classroom.students = len(students_list)
+            if student_username in classroom.students_username:
+                classroom.students_username.remove(student_username)
+                classroom.students = len(classroom.students_username)
                 classroom.save()
 
             joined_classroom.delete()
