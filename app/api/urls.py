@@ -50,7 +50,7 @@ urlpatterns = [
     path("classroom/<int:classroom_id>/podcasts/", TeacherAIPodcastManagerView.as_view(), name="classroom_podcasts"),  # List podcasts for a classroom
     path("classroom/podcast/upload/", TeacherAIPodcastManagerView.as_view(), name="upload_podcast"),  # Upload a new podcast (Teacher only)
     path("classroom/podcast/<int:pk>/", TeacherAIPodcastManagerView.as_view(), name="delete_podcast"),  # Delete and Update the podcast (Teacher Only)
-    path("class-test-store/", ClassTestStoreView.as_view(), name="class_test_store"),
+    path("class-test-store/", ClassTestStoreView.as_view(), name="class_test_store"), #Get all the tests questions
     path("class-test-store/<int:pk>/", ClassTestStoreView.as_view(), name="class_test_store_detail"),
     path("class-test-store/test/<int:test_id>/", ClassTestStoreView.as_view(), name="class_test_store_by_test"),
     
