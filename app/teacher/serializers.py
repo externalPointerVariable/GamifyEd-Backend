@@ -130,11 +130,18 @@ class TeacherRecentActivitiesSerializer(serializers.ModelSerializer):
         validated_data['teacher'] = teacher_profile
         return super().create(validated_data)
 
+from rest_framework import serializers
+
 class TeacherAIPodcastManagerSerializer(serializers.ModelSerializer):
+    created_by_username = serializers.SerializerMethodField()
+
     class Meta:
         model = TeacherAIPodcastManager
-        fields = ['id', 'classroom', 'title', 'description', 'audio_url', 'created_by', 'created_at']
+        fields = ['id', 'classroom', 'title', 'description', 'audio_url', 'created_by', 'created_by_username', 'created_at']
         read_only_fields = ['id', 'created_at']
+
+    def get_created_by_username(self, obj):
+        return obj.created_by.user.username if obj.created_by and obj.created_by.user else None
 
 class ClassTestStoreSerializer(serializers.ModelSerializer):
     class Meta:
