@@ -107,10 +107,15 @@ class ClassroomCalendarEventsSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'created_at']
 
 class TeacherRecentActivitiesSerializer(serializers.ModelSerializer):
+    teacher = serializers.SerializerMethodField()
+
     class Meta:
         model = TeacherRecentActivities
         fields = ['id', 'teacher', 'action', 'details', 'created_at']
         read_only_fields = ['id', 'created_at', 'teacher']
+
+    def get_teacher(self, obj):
+        return obj.teacher.user.username  # Display username instead of ID
 
     def create(self, validated_data):
         teacher_username = self.context.get('teacher_username')
@@ -126,10 +131,15 @@ class TeacherRecentActivitiesSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 class TeacherAIPodcastManagerSerializer(serializers.ModelSerializer):
+    created_by = serializers.SerializerMethodField()
+
     class Meta:
         model = TeacherAIPodcastManager
         fields = ['id', 'classroom', 'title', 'description', 'audio_url', 'created_by', 'created_at']
         read_only_fields = ['id', 'created_at']
+
+    def get_created_by(self, obj):
+        return obj.created_by.user.username if obj.created_by and obj.created_by.user else None
 
 class ClassTestStoreSerializer(serializers.ModelSerializer):
     class Meta:

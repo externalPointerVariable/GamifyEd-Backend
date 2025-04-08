@@ -135,7 +135,6 @@ class JoinedClassroomSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         student = validated_data['student']
         classroom_code = validated_data.pop('classroom_code')
-
         try:
             classroom = Classrooms.objects.get(classroom_code=classroom_code)
         except Classrooms.DoesNotExist:
@@ -143,12 +142,10 @@ class JoinedClassroomSerializer(serializers.ModelSerializer):
 
         if JoinedClassrooms.objects.filter(student=student, classroom=classroom).exists():
             raise serializers.ValidationError({"error": "Student already joined this classroom"})
-
         joined_classroom = JoinedClassrooms.objects.create(student=student, classroom=classroom)
 
         classroom.students += 1
         classroom.save()
-
         return joined_classroom
     
 class StudentAIPodcastSerializer(serializers.ModelSerializer):

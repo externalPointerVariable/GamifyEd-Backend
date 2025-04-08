@@ -2,7 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
-from student.models import StudentProfile
+from student.models import StudentProfile, JoinedClassrooms
 from student.serializers import StudentProfileSerializer
 from .serializers import TeacherProfileSerializer, ClassroomsManagerSerializer, ClassroomAnnouncementSerializer, ClassroomSharedMaterialSerializer, ClassroomTestActivitiesSerializer, ClassroomCalendarEventsSerializer, TeacherRecentActivitiesSerializer, TeacherAIPodcastManagerSerializer, ClassTestStoreSerializer
 from .models import Classrooms, ClassroomAnnouncements, TeacherProfile, ClassroomSharedMaterials, ClassroomsTestActivities, ClassroomCalendarEvents,TeacherRecentActivities,TeacherAIPodcastManager, ClassTestStore
@@ -192,23 +192,44 @@ class ClassroomSharedMaterialView(APIView):
 
     def get(self, request, classroom_id=None, pk=None):
         """Retrieve shared materials for a classroom or a specific material by ID"""
+
+        user = request.user
+
         if pk:
             try:
-                material = ClassroomSharedMaterials.objects.get(
-                    pk=pk, classroom__teacher=request.user.teacher_profile
-                )
+                material = ClassroomSharedMaterials.objects.get(pk=pk)
+                classroom = material.classroom
+
+                if hasattr(user, 'teacher_profile') and classroom.teacher == user.teacher_profile:
+                    pass
+                elif hasattr(user, 'student_profile') and JoinedClassrooms.objects.filter(
+                    classroom=classroom, student=user.student_profile
+                ).exists():
+                    pass
+                else:
+                    return Response({"error": "Access denied"}, status=status.HTTP_403_FORBIDDEN)
+
                 serializer = ClassroomSharedMaterialSerializer(material)
                 return Response(serializer.data, status=status.HTTP_200_OK)
+
             except ClassroomSharedMaterials.DoesNotExist:
                 return Response({"error": "Material not found"}, status=status.HTTP_404_NOT_FOUND)
-
         if classroom_id:
-            materials = ClassroomSharedMaterials.objects.filter(
-                classroom__id=classroom_id, classroom__teacher=request.user.teacher_profile
-            )
+            try:
+                classroom = Classrooms.objects.get(id=classroom_id)
+            except Classrooms.DoesNotExist:
+                return Response({"error": "Classroom not found"}, status=status.HTTP_404_NOT_FOUND)
+            if hasattr(user, 'teacher_profile') and classroom.teacher == user.teacher_profile:
+                pass
+            elif hasattr(user, 'student_profile') and JoinedClassrooms.objects.filter(
+                classroom=classroom, student=user.student_profile
+            ).exists():
+                pass
+            else:
+                return Response({"error": "Access denied"}, status=status.HTTP_403_FORBIDDEN)
+            materials = ClassroomSharedMaterials.objects.filter(classroom__id=classroom_id)
             serializer = ClassroomSharedMaterialSerializer(materials, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
-
         return Response({"error": "Classroom ID is required"}, status=status.HTTP_400_BAD_REQUEST)
 
     def post(self, request, classroom_id=None):
@@ -367,18 +388,14 @@ class TeacherRecentActivitiesView(APIView):
         return Response({"error": "Invalid request"}, status=status.HTTP_400_BAD_REQUEST)
 
     def post(self, request, teacher_username):
-        try:
-            teacher_profile = TeacherProfile.objects.get(user__username=teacher_username)
-        except TeacherProfile.DoesNotExist:
-            return Response({"error": "Teacher not found"}, status=status.HTTP_404_NOT_FOUND)
-
-        serializer = TeacherRecentActivitiesSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(teacher=teacher_profile)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
+            serializer = TeacherRecentActivitiesSerializer(
+                data=request.data,
+                context={'teacher_username': teacher_username}
+            )
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class TeacherAIPodcastManagerView(APIView):
     permission_classes = [IsAuthenticated]
@@ -401,6 +418,18 @@ class TeacherAIPodcastManagerView(APIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request, pk):
+        try:
+            podcast = TeacherAIPodcastManager.objects.get(pk=pk, created_by=request.user.teacher_profile)
+        except TeacherAIPodcastManager.DoesNotExist:
+            return Response({"error": "Podcast not found or unauthorized access"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = TeacherAIPodcastManagerSerializer(podcast, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
