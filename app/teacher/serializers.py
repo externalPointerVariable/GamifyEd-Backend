@@ -107,10 +107,15 @@ class ClassroomCalendarEventsSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'created_at']
 
 class TeacherRecentActivitiesSerializer(serializers.ModelSerializer):
+    teacher = serializers.SerializerMethodField()
+
     class Meta:
         model = TeacherRecentActivities
         fields = ['id', 'teacher', 'action', 'details', 'created_at']
         read_only_fields = ['id', 'created_at', 'teacher']
+
+    def get_teacher(self, obj):
+        return obj.teacher.user.username  # Display username instead of ID
 
     def create(self, validated_data):
         teacher_username = self.context.get('teacher_username')
