@@ -191,32 +191,38 @@ class StudentAIPodcastView(APIView):
         except StudentAIPodcast.DoesNotExist:
             return Response({"error": "Podcast not found"}, status=status.HTTP_404_NOT_FOUND)
 
-class DailyMissionsListView(APIView):
+class DailyMissionsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        student = request.user.student_profile
-        today = date.today()
-
-        missions_today = DailyMissions.objects.filter(student=student, date_assigned=today)
-        if not missions_today.exists():
-            default_missions = [
-                {"mission_name": "Complete a quiz", "description": "Finish any quiz today", "points": 10},
-                {"mission_name": "Listen to a podcast", "description": "Learn something new", "points": 5},
-                {"mission_name": "Practice a topic", "description": "Revise an old topic", "points": 7},
-            ]
-            for mission in default_missions:
-                DailyMissions.objects.create(
-                    student=student,
-                    mission_name=mission["mission_name"],
-                    description=mission["description"],
-                    points=mission["points"],
-                    date_assigned=today
-                )
+        try:
+            student = request.user.student_profile
+            today = date.today()
             missions_today = DailyMissions.objects.filter(student=student, date_assigned=today)
 
-        serializer = DailyMissionsSerializer(missions_today, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+            if not missions_today.exists():
+                default_missions = [
+                    {"mission_name": "Complete a quiz", "description": "Finish any quiz today", "points": 10},
+                    {"mission_name": "Listen to a podcast", "description": "Learn something new", "points": 5},
+                    {"mission_name": "Practice a topic", "description": "Revise an old topic", "points": 7},
+                ]
+
+                for mission in default_missions:
+                    DailyMissions.objects.create(
+                        student=student,
+                        mission_name=mission["mission_name"],
+                        description=mission["description"],
+                        points=mission["points"],
+                        date_assigned=today
+                    )
+
+                missions_today = DailyMissions.objects.filter(student=student, date_assigned=today)
+
+            serializer = DailyMissionsSerializer(missions_today, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except StudentProfile.DoesNotExist:
+            return Response({"error": "Student profile not found"}, status=status.HTTP_404_NOT_FOUND)
 
     def post(self, request):
         return Response({"error": "Manual creation not allowed"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
