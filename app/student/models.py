@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from teacher.models import Classrooms
 from django.utils import timezone
-from datetime import timedelta
+from datetime import date
 
 user = get_user_model()
 
@@ -51,7 +51,35 @@ class DailyMissions(models.Model):
     description = models.TextField()
     is_completed = models.BooleanField(default=False)
     points = models.IntegerField(default=0)  # Points rewarded upon completion
+    date_assigned = models.DateField(default=date.today)  # New field for refresh logic
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['student', 'mission_name', 'date_assigned']
+
+    @staticmethod
+    def refresh_daily_missions(student):
+        today = date.today()
+
+        if not DailyMissions.objects.filter(student=student, date_assigned=today).exists():
+            # Delete old missions
+            DailyMissions.objects.filter(student=student).delete()
+
+            # Assign new missions
+            default_missions = [
+                {"mission_name": "Complete 2 Practice Quizzes", "description": "Reward: 50 XP", "points": 50},
+                {"mission_name": "Listen to an AI Podcast", "description": "Reward: 30 XP", "points": 30},
+                {"mission_name": "Score 80% or higher on a quiz", "description": "Reward: 75 XP", "points": 75},
+            ]
+
+            for mission in default_missions:
+                DailyMissions.objects.create(
+                    student=student,
+                    mission_name=mission["mission_name"],
+                    description=mission["description"],
+                    points=mission["points"],
+                    date_assigned=today
+                )
 
 class XPBreakdown(models.Model):
     student = models.OneToOneField(StudentProfile, on_delete=models.CASCADE, related_name="xp_breakdown")

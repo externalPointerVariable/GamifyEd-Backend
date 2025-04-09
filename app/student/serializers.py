@@ -91,7 +91,6 @@ class PasswordResetSerializer(serializers.Serializer):
         # You can integrate an email-sending service here
         reset_link = f"{request.build_absolute_uri('/password-reset-confirm/')}?uid={uid}&token={token}"
         print(f"Password reset link: {reset_link}")  # Debugging purposes
-
         # Here you can add email-sending logic
         return reset_link
     
@@ -165,10 +164,15 @@ class StudentAIPodcastSerializer(serializers.ModelSerializer):
 
 
 class DailyMissionsSerializer(serializers.ModelSerializer):
+    student = serializers.SerializerMethodField()
+
     class Meta:
         model = DailyMissions
         fields = '__all__'
-        read_only_fields = ['id', 'created_at']
+        read_only_fields = ['id', 'created_at', 'date_assigned']
+
+    def get_student(self, obj):
+        return obj.student.user.username
 
 class XPBreakdownSerializer(serializers.ModelSerializer):
     class Meta:
