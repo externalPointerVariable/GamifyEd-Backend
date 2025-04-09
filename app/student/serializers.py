@@ -164,10 +164,15 @@ class StudentAIPodcastSerializer(serializers.ModelSerializer):
 
 
 class DailyMissionsSerializer(serializers.ModelSerializer):
+    student = serializers.SerializerMethodField()
+
     class Meta:
         model = DailyMissions
-        fields = ['id', 'student', 'mission_name', 'description', 'is_completed', 'points', 'date_assigned', 'created_at']
-        read_only_fields = ['id', 'created_at', 'date_assigned', 'student']
+        fields = '__all__'
+        read_only_fields = ['id', 'created_at', 'date_assigned']
+
+    def get_student(self, obj):
+        return obj.student.user.username
 
 class XPBreakdownSerializer(serializers.ModelSerializer):
     class Meta:
