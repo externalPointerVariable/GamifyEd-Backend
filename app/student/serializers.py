@@ -91,7 +91,6 @@ class PasswordResetSerializer(serializers.Serializer):
         # You can integrate an email-sending service here
         reset_link = f"{request.build_absolute_uri('/password-reset-confirm/')}?uid={uid}&token={token}"
         print(f"Password reset link: {reset_link}")  # Debugging purposes
-
         # Here you can add email-sending logic
         return reset_link
     
