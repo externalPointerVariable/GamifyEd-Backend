@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode
+from django.urls import reverse
 from django.utils.encoding import force_bytes
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
@@ -89,7 +90,8 @@ class PasswordResetSerializer(serializers.Serializer):
         token = default_token_generator.make_token(user)
 
         # You can integrate an email-sending service here
-        reset_link = f"{request.build_absolute_uri('/password-reset-confirm/')}?uid={uid}&token={token}"
+        reset_link = request.build_absolute_uri(
+        reverse('password-reset-confirm', kwargs={'uidb64': uid, 'token': token}))
         print(f"Password reset link: {reset_link}")  # Debugging purposes
         # Here you can add email-sending logic
         return reset_link
